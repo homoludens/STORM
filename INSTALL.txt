@@ -1,0 +1,11 @@
+/* $Id: INSTALL.txt,v 1.1.2.3 2009/06/24 21:07:35 magnity Exp $ */
+
+STORM Project Management Module for Drupal 6.x
+
+INSTALLATION:
+
+1) Copy this 'storm' directory into the /sites/all/modules directory of your Drupal installation.
+
+2) Enable STORM and whatever components of STORM that you wish, but visiting http://example.com/admin/build/modules in your web-browser.
+
+3) To enable the pdf invoice feature, you must separately install the tcpdf library (http://www.tcpdf.org). The install directory can be set at /admin/storm/invoice, but you are recommended to use the sites/all/libraries/tcpdf directory. If you do not install the tcpdf library, the core STORM installation will work, but you will not be able to view pdf invoices, instead seeing a PHP warning.
