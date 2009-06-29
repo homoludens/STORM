@@ -13,9 +13,11 @@ function stormteammember_list() {
     unset($_SESSION['stormteammember_list_filter']['project_nid']);
     unset($_SESSION['stormteammember_list_filter']['task_nid']);
     unset($_SESSION['stormteammember_list_filter']['ticket_nid']);
+    unset($_SESSION['stormteammember_list_filter']['person_title']);
   }
 
   if (array_key_exists('project_nid', $_GET)) {
+
     if ($_SESSION['stormteammember_list_filter']['project_nid'] != $_GET['project_nid']) {
       $_SESSION['stormteammember_list_filter']['project_nid'] = $_GET['project_nid'];
     }
@@ -24,6 +26,7 @@ function stormteammember_list() {
 
     unset($_SESSION['stormteammember_list_filter']['task_nid']);
     unset($_SESSION['stormteammember_list_filter']['ticket_nid']);
+    unset($_SESSION['stormteammember_list_filter']['person_title']);
   }
 
   if (array_key_exists('task_nid', $_GET)) {
@@ -34,6 +37,7 @@ function stormteammember_list() {
     $t = node_load($_GET['task_nid']);
     $_SESSION['stormteammember_list_filter']['organization_nid'] = $t->organization_nid;
     $_SESSION['stormteammember_list_filter']['project_nid'] = $t->project_nid;
+    $_SESSION['stormteammember_list_filter']['person_title'] = $t->person_title;
     unset($_SESSION['stormteammember_list_filter']['ticket_nid']);
   }
 
@@ -46,7 +50,23 @@ function stormteammember_list() {
     $_SESSION['stormteammember_list_filter']['organization_nid'] = $ti->organization_nid;
     $_SESSION['stormteammember_list_filter']['project_nid'] = $ti->project_nid;
     $_SESSION['stormteammember_list_filter']['task_nid'] = $ti->task_nid;
+    $_SESSION['stormteammember_list_filter']['person_title'] = $t->person_title;
   }
+
+  if (array_key_exists('person_nid', $_GET)) {
+
+    if ($_SESSION['stormteammember_list_filter']['person_nid'] != $_GET['person_nid']) {
+      $_SESSION['stormteammember_list_filter']['person_nid'] = $_GET['person_nid'];
+    }
+
+    $ti = node_load($_GET['person_nid']);
+    $_SESSION['stormteammember_list_filter']['organization_nid'] = $ti->organization_nid;
+    $_SESSION['stormteammember_list_filter']['project_nid'] = $ti->project_nid;
+    $_SESSION['stormteammember_list_filter']['task_nid'] = $ti->task_nid;
+    $_SESSION['stormteammember_list_filter']['person_title'] = $t->person_title;
+  }
+
+
 
   $o = drupal_get_form('stormteammember_list_filter');
 
@@ -71,6 +91,10 @@ function stormteammember_list() {
       'field' => 'stm.ticket_title',
     ),
     array(
+      'data' => t('Person'),
+      'field' => 'stm.person_title ',
+    ),
+    array(
       'data' => storm_icon_add('storm/teammembers/add', $i, $_GET),
       'class' => 'storm_list_operations',
     ),
@@ -86,6 +110,9 @@ function stormteammember_list() {
   }
   if ($_SESSION['stormteammember_list_filter']['task_nid']) {
     $where[] = 'stm.task_nid='. $_SESSION['stormteammember_list_filter']['task_nid'];
+  }
+  if ($_SESSION['stormteammember_list_filter']['person_nid']) {
+    $where[] = 'stm.person_nid='. $_SESSION['stormteammember_list_filter']['person_nid'];
   }
   if ($_SESSION['stormteammember_list_filter']['ticket_nid']) {
     $where[] = 'stm.ticket_nid='. $_SESSION['stormteammember_list_filter']['ticket_nid'];
@@ -114,6 +141,7 @@ function stormteammember_list() {
 function stormteammember_list_filter() {
   $organization_nid = $_SESSION['stormteammember_list_filter']['organization_nid'];
   $project_nid = $_SESSION['stormteammember_list_filter']['project_nid'];
+  $person_nid = $_SESSION['stormteammember_list_filter']['person_nid'];
   $task_nid = $_SESSION['stormteammember_list_filter']['task_nid'];
   $ticket_nid = $_SESSION['stormteammember_list_filter']['ticket_nid'];
   $itemsperpage = $_SESSION['stormteammember_list_filter']['itemsperpage'];
@@ -153,7 +181,7 @@ function stormteammember_list_filter() {
     '#title' => t('Organization'),
     '#default_value' => $organization_nid,
     '#options' => $organizations,
-    '#attributes' => array('onchange' => "stormticket_organization_project_task_tickets(this, 'edit-project-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
+    '#attributes' => array('onchange' => "stormticket_organization_project_task_tickets(this, 'edit-project-nid', 'edit-person-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
   );
 
   $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormproject} AS spr ON spr.vid=n.vid
@@ -172,8 +200,27 @@ function stormteammember_list_filter() {
     '#default_value' => $project_nid,
     '#options' => $projects,
     '#process' => array('storm_dependent_select_process'),
-    '#attributes' => array('onchange' => "stormticket_project_task_tickets(this, 'edit-organization-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
+    '#attributes' => array('onchange' => "stormticket_project_task_tickets(this, 'edit-organization-nid', 'edit-person-nid','edit-task-nid', 'edit-ticket-nid', true, 'All')"),
   );
+
+// Filter for project person
+  $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormperson} AS sor ON sor.vid=n.vid
+  WHERE n.status=1 AND n.type='stormperson' ORDER BY n.title";
+  $s = stormorganization_access_sql($s);
+  $s = db_rewrite_sql($s);
+  $r = db_query($s);
+  $persons = array();
+  while ($person = db_fetch_object($r)) {
+    $persons[$person->nid] = $person->title;
+  }
+  $persons = array(0 => t('All')) + $persons;
+  $form['filter']['group1']['person_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person'),
+    '#default_value' => $person_nid,
+    '#options' => $persons,
+  );
+
 
   $tree = _stormtask_get_tree($project_nid);
   $tasks = _stormtask_plain_tree($tree);
@@ -186,6 +233,8 @@ function stormteammember_list_filter() {
     '#process' => array('storm_dependent_select_process'),
     '#attributes' => array('onchange' => "stormticket_task_tickets(this, 'edit-organization-nid', 'edit-project-nid', 'edit-ticket-nid', true, 'All')"),
   );
+
+
 
   $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormticket} AS sti
   ON sti.vid=n.vid WHERE n.status=1 AND n.type='stormticket' AND sti.organization_nid=%d AND sti.project_nid=%d AND sti.task_nid=%d ORDER BY title ";
@@ -238,6 +287,7 @@ function stormteammember_list_filter_filter($form, &$form_state) {
   $_SESSION['stormteammember_list_filter']['organization_nid'] = $form_state['values']['organization_nid'];
   $_SESSION['stormteammember_list_filter']['project_nid'] = $form_state['values']['project_nid'];
   $_SESSION['stormteammember_list_filter']['task_nid'] = $form_state['values']['task_nid'];
+  $_SESSION['stormteammember_list_filter']['person_nid'] = $form_state['values']['person_nid'];
   $_SESSION['stormteammember_list_filter']['ticket_nid'] = $form_state['values']['ticket_nid'];
   $_SESSION['stormteammember_list_filter']['itemsperpage'] = $form_state['values']['itemsperpage'];
 }
@@ -370,6 +420,12 @@ function stormteammember_form(&$teammember) {
       $p = node_load($teammember->project_nid);
       $teammember->organization_nid = $p->organization_nid;
     }
+     if (array_key_exists('person_nid', $_GET) && !$teammember->person_nid) {
+      $teammember->person_nid = $_GET['person_nid'];
+      $p = node_load($teammember->person_nid);
+      $teammember->organization_nid = $p->organization_nid;
+    }
+
     if (array_key_exists('task_nid', $_GET) && !$teammember->task_nid) {
       $teammember->task_nid = $_GET['task_nid'];
       $t = node_load($teammember->task_nid);
@@ -390,6 +446,9 @@ function stormteammember_form(&$teammember) {
     if ($_SESSION['stormteammember_list_filter']['project_nid'] && !$teammember->project_nid) {
       $teammember->project_nid = $_SESSION['stormteammember_list_filter']['project_nid'];
     }
+    if ($_SESSION['stormteammember_list_filter']['person_nid'] && !$teammember->person_nid) {
+      $teammember->person_nid = $_SESSION['stormteammember_list_filter']['person_nid'];
+    }
     if ($_SESSION['stormteammember_list_filter']['task_nid'] && !$teammember->task_nid) {
       $teammember->task_nid = $_SESSION['stormteammember_list_filter']['task_nid'];
     }
@@ -398,6 +457,7 @@ function stormteammember_form(&$teammember) {
     }
     if (array_key_exists('organization_nid', $_GET)) $teammember->organization_nid = $_GET['organization_nid'];
     if (array_key_exists('project_nid', $_GET)) $teammember->project_nid = $_GET['project_nid'];
+    if (array_key_exists('person_nid', $_GET)) $teammember->person_nid = $_GET['person_nid'];
     if (array_key_exists('task_nid', $_GET)) $teammember->task_nid = $_GET['task_nid'];
     if (array_key_exists('ticket_nid', $_GET)) $teammember->ticket_nid = $_GET['ticket_nid'];
 

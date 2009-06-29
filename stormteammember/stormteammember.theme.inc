@@ -16,6 +16,7 @@ function theme_stormteammember_list($header, $teammembers) {
       l($teammember->project_title, 'node/'. $teammember->project_nid),
       l($teammember->task_title, 'node/'. $teammember->task_nid),
       l($teammember->ticket_title, 'node/'. $teammember->ticket_nid),
+      l($teammember->person_title, 'node/'. $teammember->person_nid),
       array(
         'data' => storm_icon_edit('storm/teammembers/edit/'. $teammember->tid, $i, $_GET) .'&nbsp;'.  storm_icon_delete('storm/teammembers/delete/'. $teammember->tid, $i, $_GET),
         'class' => 'storm_list_operations',
@@ -78,6 +79,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
         t('Organization', array(), $language),
         t('Project', array(), $language),
         t('Title', array(), $language),
+	t('Person', array(), $language),
         t('Date', array(), $language),
         t('Duration (hours)', array(), $language));
       $total_duration = 0;
@@ -86,6 +88,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
           $teammember->organization_title,
           $teammember->project_title,
           $teammember->title,
+	  $teammember->person_title,
           format_date($teammember->trackingdate, 'small'),
           array('data' => sprintf('%.2f', $teammember->duration), 'align' => 'right'),
         );
@@ -98,6 +101,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
       $header = array(
         t('Project', array(), $language),
         t('Title', array(), $language),
+	t('Person', array(), $language),
         t('Date', array(), $language),
         t('Duration (hours)', array(), $language));
       $total_duration = 0;
@@ -105,6 +109,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
         $rows[] = array(
           $teammember->project_title,
           $teammember->title,
+	  $teammember->person_title,
           format_date($teammember->trackingdate, 'small'),
           array('data' => sprintf('%.2f', $teammember->duration), 'align' => 'right'),
         );
@@ -119,6 +124,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
         t('Project', array(), $language),
         t('Task', array(), $language),
         t('Title', array(), $language),
+	t('Person', array(), $language),
         t('Date', array(), $language),
         t('Duration (hours)', array(), $language));
       $total_duration = 0;
@@ -127,6 +133,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
           $teammember->project_title,
           $teammember->task_title,
           $teammember->title,
+	  $teammember->person_title,
           format_date($teammember->trackingdate, 'small'),
           array('data' => sprintf('%.2f', $teammember->duration), 'align' => 'right'),
         );
@@ -142,6 +149,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
       $header = array(
         t('Task', array(), $language),
         t('Title', array(), $language),
+	t('Person', array(), $language),
         t('Date', array(), $language),
         t('Duration (hours)', array(), $language));
       $total_duration = 0;
@@ -149,6 +157,7 @@ function theme_stormteammember_list_report($report, $language, $teammembers) {
         $rows[] = array(
           $teammember->task_title,
           $teammember->title,
+	  $teammember->person_title,
           format_date($teammember->trackingdate, 'small'),
           array('data' => sprintf('%.2f', $teammember->duration), 'align' => 'right'),
         );
