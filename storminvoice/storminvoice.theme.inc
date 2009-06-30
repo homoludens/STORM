@@ -190,6 +190,12 @@ function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
       '#value' => l(t('Print PDF'), 'storm/invoice/report/'. $node->nid .'/pdf/'. $node->language),
       '#weight' => $w++,
     );
+      $node->content['storminvoice']['links']['print']['email'] = array(
+      '#prefix' => '<div class="print_pdf">',
+      '#suffix' => '</div>',
+      '#value' => l(t('Send PDF via e-mail'), 'storm/invoice/report/'. $node->nid .'/email/'. $node->language),
+      '#weight' => $w++,
+    );
   }
 
   $node->content['storminvoice']['fields'] = array(
@@ -334,9 +340,12 @@ function theme_storminvoice_report($node, $report, $language) {
   else if ($report=='pdf') {
     theme('storminvoice_report_pdf', $node, $language); 
   }
+  else if ($report=='email') {
+    theme('storminvoice_report_pdf', $node, $language, true); 
+  }
 }
 
-function theme_storminvoice_report_pdf($node, $language) {
+function theme_storminvoice_report_pdf($node, $language, $sendemail = false) {
   $tcpdf_dir = variable_get('storminvoice_tcpdf_location', 'sites/all/libraries/tcpdf');
 
   // Performs simple check for existance of tcpdf library . If it doesn't exist,  revert to node display with message about tcpdf library.
@@ -542,9 +551,26 @@ function theme_storminvoice_report_pdf($node, $language) {
 
   $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
 
-  //Close and output PDF document
-  $pdf->Output($filename, "I");
+
+  if($sendemail){
+    //Close and save PDF document as file ready for sending email
+    $dir = file_directory_path().'/'.variable_get('storminvoice_email_pdf_location', 'storminvoice').'/';
+    $pdf->Output($dir.$filename, "F");
+        //Close and output PDF document
+    $pdf->Output($filename, "I");
+  }
+  else{
+    //Close and output PDF document
+    $pdf->Output($filename, "I");
+  }
+
 }
+
+
+
+
+
+
 
 function theme_storminvoice_report_html($node, $language) {
   $languages = explode(',', $language);

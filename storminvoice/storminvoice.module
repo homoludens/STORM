@@ -190,6 +190,17 @@ function storminvoice_menu() {
     'file' => 'storminvoice.admin.inc',
   );
   
+//   $items['storm/invoice/emailreport/%node/%/%'] = array(
+//     'title' => t('Send Invoice'),
+//     'page arguments' => array(3, 4, 5),
+//     'description' => t('Storm Invoice'),
+// //     'page callback' => 'storminvoice_email_report',
+//     'page callback' => 'storminvoice_report',
+//     'access arguments' => array('Storm invoice: access'),
+//     'type' => MENU_CALLBACK,
+//     'file' => 'storminvoice.admin.inc',
+//   );
+
   $items['admin/storm/invoice'] = array(
     'title' => t('Storm Invoice'),
     'description' => t('Storm Invoice Administration Page'),
@@ -577,8 +588,38 @@ function storminvoice_admin_settings() {
     '#size' => 50,
   );
   
+
+   $form['storminvoice_email_pdf_location'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Location in <i>files</i> directory for saving emailed pdf invoices'),
+    '#default_value' => variable_get('storminvoice_email_pdf_location', 'storminvoice'),
+    '#description' => t('Location in <i>files</i> directory for saving emailed pdf invoices (<i>storminvoice</i> is recommended)'),
+    '#size' => 50,
+    '#after_build' => array('_email_pdf_check_directory'),
+  );
+
   return system_settings_form($form);
 }
+
+
+/**
+ * Checks the existence of the directory specified in $form_element. If 
+ * directory does not exist it creates new one. If validation fails, 
+ * the form element is flagged with an error from within the
+ * file_check_directory function.
+ *
+ * @param $form_element
+ *   The form element containing the name of the directory to check.
+ * @see system_check_directory()
+ */
+function _email_pdf_check_directory($form_element) {
+  $dir=file_directory_path().'/'.$form_element['#value'];
+  file_check_directory($dir, 1, $form_element['#parents'][0]);
+  return $form_element;
+}
+
+
+
 
 function storminvoice_views_api() {
   return array(
