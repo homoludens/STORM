@@ -1,5 +1,5 @@
 <?php
-// $Id: storm.module,v 1.10.4.22 2009/06/22 18:53:53 magnity Exp $
+// $Id: storm.module,v 1.10.4.24 2009/06/29 12:20:34 magnity Exp $
 
 /**
  * @file
@@ -98,13 +98,14 @@ function storm_dashboard() {
 
 function storm_admin_settings() {
   $form = array();
+  $w = 0;
 
   $form['storm_icons_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Icons directory'),
     '#default_value' => variable_get('storm_icons_path', drupal_get_path('module', 'storm') .'/icons'),
     '#description' => t("The directory that contains the Storm's icons"),
-    '#weight' => -11,
+    '#weight' => $w++,
   );
 
   $form['yearsrange'] = array(
@@ -112,7 +113,7 @@ function storm_admin_settings() {
     '#title' => t('Years range in dates'),
     '#collapsed' => false,
     '#collapsible' => true,
-    '#weight' => -10,
+    '#weight' => $w++,
   );
 
   $form['yearsrange']['group0'] = array(
@@ -137,9 +138,9 @@ function storm_admin_settings() {
   $form['stormreports'] = array(
     '#type' => 'fieldset',
     '#title' => t('Reports'),
-    '#collapsed' => false,
-    '#collapsible' => true,
-    '#weight' => -9,
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+    '#weight' => $w++,
   );
 
   $form['stormreports']['storm_report_header'] = array(
@@ -149,6 +150,48 @@ function storm_admin_settings() {
     '#description' => t('The header that will appear on the reports'),
   );
 
+  $form['taxation'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Taxation defaults'),
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+  );
+  
+  $form['taxation']['tax1'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tax 1'),
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+  );
+  
+  $form['taxation']['tax1']['status'] = array(
+    '#type' => 'select',
+    '#title' => t('Application of Tax 1'),
+    '#default_value' => variable_get('storm_tax1_app', 'item'),
+    '#description' => t('The method of application to use for Tax 1'),
+    '#options' => array(
+      'item' => t('Apply to item amount'),
+      'none' => t('Do not apply tax'),
+    ),
+    '#weight' => $w++,
+  );
+  
+  $form['taxation']['tax1']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name of Tax 1'),
+    '#default_value' => variable_get('storm_tax1_name', 'VAT'),
+    '#description' => t('The name to use for Tax 1'),
+    '#weight' => $w++,
+  );
+  
+  $form['taxation']['tax1']['percentage'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Tax 1: Default percentage'),
+    '#default_value' => variable_get('storm_tax1_percent', 20),
+    '#description' => t('Default percentage for Tax 1'),
+    '#size' => 5,
+  );
+  
   return system_settings_form($form);
 }
 

@@ -1,5 +1,5 @@
 <?php
-// $Id: storminvoice.module,v 1.4.4.37 2009/06/22 19:02:48 magnity Exp $
+// $Id: storminvoice.module,v 1.4.4.38 2009/06/28 21:12:35 magnity Exp $
 
 /**
  * @file
@@ -553,12 +553,14 @@ function storminvoice_admin_settings() {
     '#description' => t('Default number of days for invoice payment'),
     '#size' => 5,
   );
+  
   $form['storminvoice_payment_modes'] = array(
     '#type' => 'textarea',
     '#title' => t('Modes for invoice payment'),
     '#default_value' => variable_get('storminvoice_payment_modes', ''),
     '#description' => t('Modes for invoice payment'),
   );
+  
   $form['storminvoice_payment_terms'] = array(
     '#type' => 'textfield',
     '#title' => t('Payment terms'),
@@ -566,13 +568,7 @@ function storminvoice_admin_settings() {
     '#description' => t('Payment terms'),
     '#size' => 50,
   );
-  $form['storminvoice_default_taxpercentage'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default tax percentage'),
-    '#default_value' => variable_get('storminvoice_default_taxpercent', 20),
-    '#description' => t('Default tax percentage'),
-    '#size' => 5,
-  );
+  
   $form['storminvoice_tcpdf_location'] = array(
     '#type' => 'textfield',
     '#title' => t('Location of tcpdf library'),

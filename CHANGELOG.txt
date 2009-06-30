@@ -1,6 +1,12 @@
-/* $Id: CHANGELOG.txt,v 1.1.2.28 2009/06/21 21:22:15 magnity Exp $ */
+/* $Id: CHANGELOG.txt,v 1.1.2.31 2009/06/28 21:20:24 magnity Exp $ */
 
 Version 6.x-1.x-dev:
+- Part of Feature 301301: (Timetracker -> Invoice): Added database columns for src
+- Part of Feature 311855: (Compound tax): Moved tax settings to Storm.module
+- Part of Feature 297775: (Gantt charts): Added setting for chart location
+- Bug #500876: Fixed error when filering views by Storm Attributes values
+
+Version 6.x-1.23:
 - Feature #334396: Adding create ticket link to task node view (plus style changes on links on right hand side of node views)
 - Task #436922: Storm Invoice Items module removed (functionality now within Storm Invoice)
 - Bug #495512: Ticket list filter reset does not reset category

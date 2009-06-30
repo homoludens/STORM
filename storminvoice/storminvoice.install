@@ -1,5 +1,5 @@
 <?php
-// $Id: storminvoice.install,v 1.1.4.10 2009/06/25 11:49:08 magnity Exp $
+// $Id: storminvoice.install,v 1.1.4.12 2009/06/28 21:08:13 magnity Exp $
 
 /**
  * @file
@@ -48,6 +48,8 @@ function storminvoice_schema() {
       'taxpercent'          => array('type' => 'float'),
       'tax'                 => array('type' => 'float'),
       'total'               => array('type' => 'float'),
+      'src_nid'             => array('type' => 'int'),
+      'src_vid'             => array('type' => 'int'),
     ),
     'primary key' => array('vid', 'nid'),
   );
@@ -96,6 +98,17 @@ function storminvoice_update_6101() {
     $sql = "DELETE FROM {system} WHERE 'name' = 'storminvoiceitem'";
     $ret[] = update_sql($sql);
   }
+  
+  return $ret;
+}
+
+function storminvoiceitem_update_6102() {
+  $ret = array();
+
+  db_add_column($ret, 'storminvoiceitem', 'src_nid', 'int');
+  db_add_column($ret, 'storminvoiceitem', 'src_vid', 'int');
+  variable_set('storm_tax1_percent', variable_get('storminvoice_default_taxpercent', 20));
+  variable_del('storminvoice_default_taxpercent');
   
   return $ret;
 }
