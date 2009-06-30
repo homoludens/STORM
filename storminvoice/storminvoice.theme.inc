@@ -158,7 +158,7 @@ function theme_storminvoice_list($header, $invoices, $itemsperpage, $totals_topa
  */
 function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
-
+// variable_get('storminvoice_email_pdf_file_path', '');
   $w = 0;
   $node->content['storminvoice'] = array(
     '#prefix' => '<div id="storminvoice" class="stormcomponent">',
@@ -191,12 +191,25 @@ function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
       '#weight' => $w++,
     );
       $node->content['storminvoice']['links']['print']['email'] = array(
+//       '#executes_submit_callback' => True,
+//       '#type' => 'submit',
+//       '#submit' => array('_storminvoice_report_file_pdf'),
+      '#value' => t('Send PDF via e-mail'),
+/*      '#path' => 'storm/invoices',*/
       '#prefix' => '<div class="print_pdf">',
       '#suffix' => '</div>',
       '#value' => l(t('Send PDF via e-mail'), 'storm/invoice/report/'. $node->nid .'/email/'. $node->language),
+//       '#callback' => 'storminvoice_send_email',
       '#weight' => $w++,
     );
   }
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#submit' => array('storminvoice_items_submit'),
+    '#value' => t('Save item ordering'),
+  );
+
 
   $node->content['storminvoice']['fields'] = array(
     '#prefix' => '<div id="fields">',
@@ -333,6 +346,8 @@ function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
   return $node;
 }
 
+
+
 function theme_storminvoice_report($node, $report, $language) {
   if($report=='html') {
     print theme('storminvoice_report_html', $node, $language); 
@@ -340,12 +355,13 @@ function theme_storminvoice_report($node, $report, $language) {
   else if ($report=='pdf') {
     theme('storminvoice_report_pdf', $node, $language); 
   }
-  else if ($report=='email') {
-    theme('storminvoice_report_pdf', $node, $language, true); 
-  }
+//   else if ($report=='email') {
+//     _storminvoice_report_file_pdf( $node, $language);
+//     storminvoice_send_email($node);
+//   }
 }
 
-function theme_storminvoice_report_pdf($node, $language, $sendemail = false) {
+function theme_storminvoice_report_pdf($node, $language) {
   $tcpdf_dir = variable_get('storminvoice_tcpdf_location', 'sites/all/libraries/tcpdf');
 
   // Performs simple check for existance of tcpdf library . If it doesn't exist,  revert to node display with message about tcpdf library.
@@ -552,17 +568,8 @@ function theme_storminvoice_report_pdf($node, $language, $sendemail = false) {
   $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
 
 
-  if($sendemail){
-    //Close and save PDF document as file ready for sending email
-    $dir = file_directory_path().'/'.variable_get('storminvoice_email_pdf_location', 'storminvoice').'/';
-    $pdf->Output($dir.$filename, "F");
-        //Close and output PDF document
+   //Close and output PDF document
     $pdf->Output($filename, "I");
-  }
-  else{
-    //Close and output PDF document
-    $pdf->Output($filename, "I");
-  }
 
 }
 

@@ -190,16 +190,15 @@ function storminvoice_menu() {
     'file' => 'storminvoice.admin.inc',
   );
   
-//   $items['storm/invoice/emailreport/%node/%/%'] = array(
-//     'title' => t('Send Invoice'),
-//     'page arguments' => array(3, 4, 5),
-//     'description' => t('Storm Invoice'),
-// //     'page callback' => 'storminvoice_email_report',
-//     'page callback' => 'storminvoice_report',
-//     'access arguments' => array('Storm invoice: access'),
-//     'type' => MENU_CALLBACK,
-//     'file' => 'storminvoice.admin.inc',
-//   );
+  $items['storm/invoice/report/%node/email/%'] = array(
+    'title' => t('Send Invoice'),
+    'page arguments' => array(3, 5),
+    'description' => t('Storm Invoice'),
+    'page callback' => 'storminvoice_send_email',
+    'access arguments' => array('Storm invoice: access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'storminvoice.admin.inc',
+  );
 
   $items['admin/storm/invoice'] = array(
     'title' => t('Storm Invoice'),

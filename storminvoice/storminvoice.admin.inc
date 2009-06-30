@@ -430,6 +430,13 @@ function storminvoice_items_form($form_id, $header, $invoiceitems, $invoice) {
   return $form;
 }
 
+function storminvoice_send_email($node, $language){
+  _storminvoice_report_file_pdf( $node, $language);
+  drupal_set_message(variable_get('storminvoice_email_pdf_file_path', ''));
+//   print variable_get('storminvoice_email_pdf_file_path', '');
+}
+
+
 function storminvoice_items_submit($form, &$form_state) {
   $invoiceitems = array();
   foreach($form_state['values'] as $key=>$value) {
@@ -445,4 +452,220 @@ function storminvoice_items_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Invoice items saved'));
+}
+
+//  generate pdf file for sending almost the same as 
+//  theme_storminvoice_report_pdf
+function _storminvoice_report_file_pdf($node, $language) {
+  $tcpdf_dir = variable_get('storminvoice_tcpdf_location', 'sites/all/libraries/tcpdf');
+
+  // Performs simple check for existance of tcpdf library . If it doesn't exist,  revert to node display with message about tcpdf library.
+  if(!file_exists($tcpdf_dir .'/tcpdf.php')) {
+    drupal_set_message(t('The tcpdf library has not been installed. See the Storm module README.txt for more details.'));
+    drupal_goto('node/'. $node->nid);
+  }
+  
+  require_once($tcpdf_dir .'/config/lang/eng.php');
+  require_once($tcpdf_dir .'/tcpdf.php');
+  $languages = explode(',', $language);
+  $language = $languages[0];
+  $language1 = '';
+  if (array_key_exists(1, $languages)) {
+    $language1 = $languages[1];
+  }
+
+  $status = 'open';
+  if ($node->paymentdate) {
+    $status = 'paid';
+  }
+  else if ($node->duedate < time()) {
+    $status = 'overdue';
+  }
+
+  $countries = stormattribute_attributes_bydomain('Country');
+  $countries = $countries['values'];
+  $currencies = stormattribute_attributes_bydomain('Currency');
+  $currencies = $currencies['values'];
+  $myorg = node_load(variable_get('storm_organization_nid', 0));
+  $mycurrency = $currencies[$myorg->currency];
+
+  $organization = node_load($node->organization_nid);
+  $project = node_load($node->project_nid);
+
+  $o = '';
+  $title = t('Invoice', array(), $language);
+  $complete_title = $title .' '. $myorg->title .' : '. $organization->title .' - '. $node->number;
+
+  $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true); 
+  $pdf->SetCreator(PDF_CREATOR);
+  $pdf->SetAuthor("Storm");
+  $pdf->SetTitle($complete_title);
+  $pdf->SetSubject($title);
+  $pdf->SetKeywords($title, $myorg->title, $organization->title, $node->number);
+  $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+  $pdf->setPrintHeader(false);
+  $pdf->setPrintFooter(false);
+  $margins = $pdf->getMargins();
+  $pageWidth = $pdf->getPageWidth() - $margins['left'] - $margins['right'];
+  $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+  $pdf->AddPage();
+  $pdf->setDrawColor(204, 204, 204);
+  $pdf->setFillColor(220, 220, 220);
+
+  $pdf->SetFont("times", "B", 14);
+  $headerleft = variable_get('site_name', '') .'<br />'. variable_get('site_slogan', '');
+  $pdf->writeHTMLCell($pageWidth *.5, 0, $pdf->getX(), $pdf->getY(), $headerleft, 0 ,0 ,0, false, 'L');
+  $pdf->SetFont("times", "N", 10);
+  $pdf->writeHTMLCell($pageWidth *.5, 0, $pdf->getX(), $pdf->getY(), variable_get('storm_report_header', ''), 0 ,1 ,0, false, 'R');
+  $pdf->SetFont("times", "B", 14);
+  $o = $title;
+  if ($language1) $o .= "\n". t('Invoice', array(), $language1);
+  $pdf->MultiCell(0, 0, $o, 0 ,'C', 0, 1,$pdf->getX(), $pdf->getY() + 10);
+
+  $y = $pdf->getY() + 10;
+
+  $pdf->SetFont("times", "B", 10);
+  $o = t('Bill to', array(), $language);
+  if ($language1) $o .= "\n". t('Bill to', array(), $language1);
+  $pdf->MultiCell($pageWidth *.4, 0, $o, 'B', 'L', 0, 1, PDF_MARGIN_LEFT, $y);
+  $o =  $organization->fullname ."\n";
+  $o .= $organization->address ."\n";
+  $o .= $organization->city ."\n";
+  if ($organization->zip) $o .= $organization->zip .' ';
+  if ($organization->provstate) $o .= $organization->provstate .' ';
+  $o .= $countries[$organization->country] ."\n";;
+  if ($organization->taxid) {
+    $o .= t('Tax ID', array(), $language);
+    if ($language1) $o .= ' / '. t('Tax ID', array(), $language1);
+    $o .= ' : '. $organization->taxid;
+  }
+  $pdf->SetFont("times", "N", 10);
+  $pdf->MultiCell($pageWidth *.4, 0, $o,0 , 'L' ,0, 1, PDF_MARGIN_LEFT);
+  $destY = $pdf->getY();
+
+  $w = ($pageWidth *.5) / 4;
+
+  $pdf->SetFont("times", "B", 10);
+
+  $o = t('Invoice#', array(), $language);
+  if ($language1) $o .= "\n". t('Invoice#', array(), $language1);
+  $pdf->MultiCell($w-2, 0, $o, 1, 'L', 1, 0, PDF_MARGIN_LEFT + $pageWidth *.5, $y);
+
+  $o = t('Currency', array(), $language);
+  if ($language1) $o .= "\n". t('Currency', array(), $language1);
+  $pdf->MultiCell($w-3, 0, $o, 1, 'L', 1, 0);
+  $o = t('Date', array(), $language);
+  if ($language1) $o .= "\n". t('Date', array(), $language1);
+  $pdf->MultiCell($w+5, 0, $o, 1, 'L', 1, 0);
+  $o = t('Reference', array(), $language);
+  if ($language1) $o .= "\n". t('Reference', array(), $language1);
+  $pdf->MultiCell($w, 0, $o, 1, 'L', 1, 1);
+
+  $pdf->SetFont("times", "N", 10);
+  $h = $pdf->getY();
+  $pdf->MultiCell($w, 0, $node->reference?$node->reference:'-' , 1, 'L', 0, 1, PDF_MARGIN_LEFT + $pageWidth*.5 + $w*3);
+  $h = $pdf->getY() - $h;
+  $pdf->MultiCell($w-2, $h, $node->number, 1, 'L', 0, 0, PDF_MARGIN_LEFT + $pageWidth *.5, $pdf->getY() - $h);
+  $pdf->MultiCell($w-3, $h, t($mycurrency, array(), $language), 1, 'L', 0, 0);
+  $pdf->MultiCell($w+5, $h, format_date($node->requestdate, 'custom', 'Y-m-d'), 1, 'L', 0, 1);
+
+  $pdf->SetFont("times", "B", 10);
+
+  $o = t('Due total', array(), $language);
+  if ($language1) $o .= "\n". t('Due total', array(), $language1);
+  $pdf->MultiCell($w*2 - 5, 0, $o, 1, 'L', 1, 0, PDF_MARGIN_LEFT + $pageWidth *.5);
+
+  $o = t('Due date', array(), $language);
+  if ($language1) $o .= "\n". t('Due date', array(), $language1);
+  $pdf->MultiCell($w + 5, 0, $o, 1, 'L', 1, 0);
+
+  $o = t('Terms', array(), $language);
+  if ($language1) $o .= "\n". t('Terms', array(), $language1);
+  $pdf->MultiCell($w, 0, $o, 1, 'L', 1, 1);
+
+  $pdf->SetFont("times", "B", 10);
+  $o = t($mycurrency, array(), $language) .' '. sprintf('%.2f', $node->total);
+  if ($organization->currency != $myorg->currency) {
+    $o .= "\n". $organization->currency .' '. sprintf('%.2f', $node->totalcustomercurr);
+  }
+  $pdf->MultiCell($w*2 - 5, 12, $o, 1, 'C', 0, 0, PDF_MARGIN_LEFT + $pageWidth *.5);
+  $pdf->SetFont("times", "N", 10);
+  $pdf->MultiCell($w + 5, 12, format_date($node->duedate, 'custom', 'Y-m-d'), 1, 'L', 0, 0);
+  $pdf->MultiCell($w, 12, t(variable_get('storminvoice_payment_terms', ''), array(), $language), 1, 'L', 0, 1);
+
+  $y = $pdf->getY();
+  if($destY > $y) $y = $destY;
+  $pdf->setY($y+10);
+
+  $pdf->setX(PDF_MARGIN_LEFT);
+  $pdf->SetFont("times", "B", 10);
+
+  $o = t('Description', array(), $language);
+  if ($language1) $o .= "\n". t('Description', array(), $language1);
+  $pdf->MultiCell($pageWidth * .4, 0, $o, 1, 'L', 1, 0);
+
+  $o = t('Amount', array(), $language);
+  if ($language1) $o .= "\n". t('Amount', array(), $language1);
+  $pdf->MultiCell($pageWidth * .15, 0, $o, 1, 'C', 1, 0);
+
+  $o = t('Tax %', array(), $language);
+  if ($language1) $o .= "\n". t('Tax %', array(), $language1);
+  $pdf->MultiCell($pageWidth * .15, 0, $o, 1, 'C', 1, 0);
+
+  $o = t('Tax', array(), $language);
+  if ($language1) $o .= "\n". t('Tax', array(), $language1);
+  $pdf->MultiCell($pageWidth * .15, 0, $o, 1, 'C', 1, 0);
+
+  $o = t('Total', array(), $language);
+  if ($language1) $o .= "\n". t('Total', array(), $language1);
+  $pdf->MultiCell($pageWidth * .15, 0, $o, 1, 'C', 1, 1);
+
+  $pdf->SetFont("times", "N", 10);
+  $items = storminvoiceitem_getitems($node->nid);
+  $rows = array();
+  $pdf->setFillColor(245, 245, 245);
+  $c = 0;
+  foreach ($items as $i) {
+    if ($c==2) $c=0;
+    $y = $pdf->getY();
+    $h = $pdf->getY();
+    $pdf->MultiCell($pageWidth * .4, 0, $i->title, 1, 'L', $c, 1);
+    $h = $pdf->getY() - $h;
+    $pdf->setY($y);
+    $pdf->setX(PDF_MARGIN_LEFT + $pageWidth * .4);
+    $pdf->Cell($pageWidth * .15, $h, sprintf('%.2f', $i->amount), 1, 0, 'R', $c);
+    $pdf->Cell($pageWidth * .15, $h, $i->taxpercent, 1, 0, 'R', $c);
+    $pdf->Cell($pageWidth * .15, $h, sprintf('%.2f', $i->tax), 1, 0, 'R', $c);
+    $pdf->Cell($pageWidth * .15, $h, sprintf('%.2f', $i->total), 1, 1, 'R', $c);
+    $c++;
+  }
+
+  if ($node->taxexempt && $language1=='it') {
+    $o = t('Tax exempt art. 7', array(), $language);
+    if ($language1) $o .= "\n". t('Tax exempt art. 7', array(), $language1);
+    $pdf->MultiCell($pageWidth, 0, $o,0 , 'L' ,0, 1, $pdf->getX(), $pdf->getY() + 5);
+  }
+
+  $y = $pdf->getY() + 10;
+  $pdf->setY($y);
+  $pdf->SetFont("times", "B", 10);
+  $pdf->Cell($pageWidth, 5, t('Payment', array(), $language), 'B', 0, 'L');
+  $pdf->SetFont("times", "N", 10);
+  $pdf->MultiCell($pageWidth, 0, t(variable_get('storminvoice_payment_modes', ''), array(), $language),0 , 'L' ,0, 1, PDF_MARGIN_LEFT, $pdf->getY(), true, 0, true);
+
+  if ($status=='paid') {
+    $y = $pdf->getY() + 10;
+    $pdf->setY($y);
+    $pdf->SetFont("times", "B", 14);
+    $pdf->Cell(0, 12, t('Paid in full', array(), $language), 0 ,1,'C');
+  }
+
+  $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
+
+
+    //Close and save PDF document as file ready for sending email
+    $dir = file_directory_path().'/'.variable_get('storminvoice_email_pdf_location', 'storminvoice').'/';
+    $pdf->Output($dir.$filename, "F");
+    variable_set('storminvoice_email_pdf_file_path', $dir.$filename);
+
 }
