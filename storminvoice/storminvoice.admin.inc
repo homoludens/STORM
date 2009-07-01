@@ -549,7 +549,7 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
 
 function storminvoice_send_form_submit($form, &$form_state) {
   $form_filled = $form_state['clicked_button']['#post'];
-// print_r($form_state);
+
   $to = $form_filled['recipients'];
   $language = null;
   $from = $form_state['values']['yname'].'<'.$form_state['values']['yemail'].'>';
@@ -635,8 +635,11 @@ function storminvoice_items_submit($form, &$form_state) {
   drupal_set_message(t('Invoice items saved'));
 }
 
-//  generate pdf file for sending almost the same as 
-//  theme_storminvoice_report_pdf
+/**
+ *  generate pdf file for sending almost the same as 
+ *  theme_storminvoice_report_pdf and code is almost the same
+ *  it would be nice to merge them into one.
+ */
 function _storminvoice_report_file_pdf($node, $language) {
   $tcpdf_dir = variable_get('storminvoice_tcpdf_location', 'sites/all/libraries/tcpdf');
 
