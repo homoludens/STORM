@@ -540,17 +540,16 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
 }
 
 function storminvoice_send_form_submit($form, &$form_state) {
-  $to = $form_state['#values']['#recipients'];
+  $to = $form_state['values']['recipients'];
   $language = '';
-  $from = $form_state['#values']['#yemail'];
+  $from = $form_state['values']['yemail'];
 
   $params = array();
-  $params['subject'] = $form_state['#values']['#subject'];
-  $params['body'] = $form_state['#values']['#body'];
+  $params['subject'] = $form_state['values']['subject'];
+  $params['body'] = $form_state['values']['body'];
   
-  drupal_mail('storminvoice', 'invoice', $to, $language, $params = array(), $from , True);
+  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , True);
 
-// drupal_mail($module, $key, $to, $language, $params = array(), $from = NULL, $send = TRUE)
   drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.')));
 }
 
