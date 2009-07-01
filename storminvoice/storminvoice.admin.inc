@@ -540,15 +540,43 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
 }
 
 function storminvoice_send_form_submit($form, &$form_state) {
-  $to = $form_state['values']['recipients'];
-  $language = '';
-  $from = $form_state['values']['yemail'];
+
+  $form_filled = $form_state['clicked_button']['#post'];
+// print_r($form_state);
+  $to = $form_filled['recipients'];
+  $language = null;
+  $from = $form_state['values']['yname'].'<'.$form_state['values']['yemail'].'>';
 
   $params = array();
-  $params['subject'] = $form_state['values']['subject'];
-  $params['body'] = $form_state['values']['body'];
-  
-  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , True);
+  $params['subject'] = $form_filled['subject'];
+
+  $trenner  = md5(uniqid(time()));
+  variable_set('storminvoice_email_pdf_trenner', $trenner);
+
+  $headers['Content-Type'] = "multipart/mixed; boundary=$trenner";
+  $params['body']  = "\n--$trenner\n";
+  $params['body'] .= "Content-Type: text/plain; charset=UTF-8; format=flowed;"."\n\n"; // sets the mime type
+  $params['body'] .= $form_filled['body']."\n";
+  $params['body'] .= "\n\n";
+  $params['body'] .= "\n\n";
+
+  $pdffile = variable_get('storminvoice_email_pdf_file_path', '');
+  $pdffile_name = variable_get('storminvoice_email_pdf_file_name', '');
+  $pdffile_mime = file_get_mimetype($pdffile);
+  $pdffile_size = filesize($pdffile);
+
+  if($pdffile){
+    $params['body']  .= "--$trenner"."\n";
+    $params['body']  .= "Content-Type:$pdffile_mime; name='$pdffile_name'\n";
+    $params['body']  .= "Content-Disposition: attachment; filename='$pdffile_name'\n";
+    $params['body']  .= "Content-Transfer-Encoding: base64\n\n";
+
+    $filedata  = fread(fopen($pdffile, "rb"), $pdffile_size);
+    $params['body']  .= chunk_split(base64_encode($filedata));
+  }
+  $params['body'] .= "--$trenner--";
+
+  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , False);
 
   drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.')));
 }
@@ -570,10 +598,11 @@ function storminvoice_send_form_submit($form, &$form_state) {
  * @see _update_message_text()
  */
 function storminvoice_mail($key, &$message, $params) {
-  $message['subject'] .= $params['subject'];
+  $trenner = variable_get('storminvoice_email_pdf_trenner', '');
+  $message['subject'] = $params['subject'];
   $message['body'][] = $params['body'];
   $message['headers']['MIME-Version'] = '1.0';
-  $message['headers']['Content-Type'] = 'text/html; charset=utf-8';
+  $message['headers']['Content-Type'] = "multipart/mixed; boundary=$trenner";
 }
 
 
@@ -807,5 +836,6 @@ function _storminvoice_report_file_pdf($node, $language) {
     $dir = file_directory_path().'/'.variable_get('storminvoice_email_pdf_location', 'storminvoice').'/';
     $pdf->Output($dir.$filename, "F");
     variable_set('storminvoice_email_pdf_file_path', $dir.$filename);
+    variable_set('storminvoice_email_pdf_file_name', $filename);
 
 }
