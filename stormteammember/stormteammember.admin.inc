@@ -121,7 +121,7 @@ function stormteammember_list() {
   $itemsperpage = $_SESSION['stormteammember_list_filter']['itemsperpage'];
 
   $s = stormteammember_access_sql($s, $where);
-  $s = db_rewrite_sql($s);
+//   $s = db_rewrite_sql($s);
 
   $tablesort = tablesort_sql($header);
   $r = pager_query($s . $tablesort, $itemsperpage, 0, NULL);
@@ -181,7 +181,7 @@ function stormteammember_list_filter() {
     '#title' => t('Organization'),
     '#default_value' => $organization_nid,
     '#options' => $organizations,
-    '#attributes' => array('onchange' => "stormticket_organization_project_task_tickets(this, 'edit-project-nid', 'edit-person-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
+    '#attributes' => array('onchange' => "stormticket_organization_project_task_tickets(this, 'edit-project-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
   );
 
   $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormproject} AS spr ON spr.vid=n.vid
@@ -200,10 +200,9 @@ function stormteammember_list_filter() {
     '#default_value' => $project_nid,
     '#options' => $projects,
     '#process' => array('storm_dependent_select_process'),
-    '#attributes' => array('onchange' => "stormticket_project_task_tickets(this, 'edit-organization-nid', 'edit-person-nid','edit-task-nid', 'edit-ticket-nid', true, 'All')"),
+    '#attributes' => array('onchange' => "stormticket_project_task_tickets(this, 'edit-organization-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
   );
 
-// Filter for project person
   $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormperson} AS sor ON sor.vid=n.vid
   WHERE n.status=1 AND n.type='stormperson' ORDER BY n.title";
   $s = stormorganization_access_sql($s);

@@ -448,59 +448,23 @@ function storminvoice_send_page($node, $language) {
 
   $path =  'node/'. $node->nid;
 
-/*
-
-  if (is_numeric($nid)) {
-    // we have a node
-    $node = node_load(array('nid' => $nid));
-    if (!node_access('view', $node)) {
-      // Access is denied
-      return drupal_access_denied();
-    }
-    $form_state['values']['path'] = 'node/'. $node->nid;
-  }
-  else {
-    $args = explode('/', $form_state['values']['path']);
-    if ($args[0] == 'admin') {
-      return drupal_access_denied();
-    }
-    $node = new stdClass();
-    $node->title = $form_state['values']['path'];
-  }
-  $cid = '';
-  if (!empty($_GET['cid'])) {
-    $cid = '?cid='.$_GET['cid'];
-  }
-  $form_state['values']['path'] .= $cid;*/
-  //print "$form_state['values']['path'] - $nid - $node->title"; exit;
-  return drupal_get_form('storminvoice_send_form', $path, $node->title);
+  return drupal_get_form('storminvoice_send_form', $path, $node, $pdffile);
 }
 
 /**
  * Form
  */
-function storminvoice_send_form(&$form_state, $path = NULL, $title = NULL, $nodeapi = FALSE) {
+function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffile) {
   global $base_url, $user;
+
+  $organization = node_load($node->organization_nid);
+  $organization_email = $organization->email;
 
   $form = array();
   $cid = array();
 
-    $emailtype = 'email';
-//     if (preg_match("/\?cid=/i", $path) == 1) {
-//       $paths = explode('?cid=', $path);
-//       $cid = array('fragment' => 'comment-'.$paths[1]);
-//       $path = $paths[0];
-//     }
-// 
-//   if ($nodeapi == TRUE) {
-//     $form['message'] = array(
-//       '#type' => 'fieldset',
-//       '#title' => t(variable_get('forward_link_title', 'Email this !type'), array('!type' => 'page')),
-//       '#description' => '',
-//       '#collapsed' => TRUE,
-//       '#collapsible' => TRUE,
-//     );
-//   }
+  $emailtype = 'email';
+
   $form['message']['instructions'] = array(
     '#type' => 'item',
     '#value' => t(variable_get('forward_instructions', '<p>Thank you for your interest in spreading the word on !site.</p><p>NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address.</p>'), array('!site' => variable_get('site_name', 'drupal'))),
@@ -520,52 +484,42 @@ function storminvoice_send_form(&$form_state, $path = NULL, $title = NULL, $node
     '#required' => TRUE,
   );
   $form['message']['recipients'] = array(
-    '#type' => 'textarea',
+    '#type' => 'textfield',
     '#title' => t('Send To'),
-    //'#default_value' => str_replace(', ', "\n", $recipients),
+    '#default_value' => $organization_email,
     '#cols' => 50,
-    '#rows' => 5,
+    '#rows' => 1,
     '#description' => t('Enter multiple addresses on separate lines or separate them with commas.'),
     '#required' => TRUE,
   );
 
   $form['message']['page'] = array(
       '#type' => 'item',
-      '#title' => t('You are going to email the following'),
-      '#value' => l($title, $path),
+      '#title' => t('You are going to email the following invoice'),
+      '#value' => l($node->title, $pdffile),
     );
 
   $form['message']['subject'] = array(
-    '#type' => 'item',
+    '#type' => 'textfield',
     '#title' => t('Message Subject'),
-    '#value' => t(variable_get('forward_'. $emailtype .'subject', '!name has sent you a message from !site'), array('!name' => t('(Your Name)'), '!site' => variable_get('site_name', 'drupal'))),
-    '#description' => '',
+    '#value' => t(variable_get('forward_'. $emailtype .'_subject', '!name has sent you invoice'), array('!name' => t('(Your Name)'))),
+    '#description' => t('Enter subject for email.'),
   );
   $form['message']['body'] = array(
-    '#type' => 'item',
+    '#type' => 'textarea',
     '#title' => t('Message Body'),
-    '#value' => t(variable_get('forward_'. $emailtype .'message', '!name thought you would like to see the !site web site.'), array('!name' => t('(Your Name)'), '!site' => variable_get('site_name', 'drupal'))),
-    '#description' => '',
+    '#value' => t(variable_get('forward_'. $emailtype .'_message', '!name thought you would like to see the !site web site.'), array('!name' => t('(Your Name)'), '!site' => variable_get('site_name', 'drupal'))),
+    '#description' => 'Cover Note',
+    '#cols' => 50,
+    '#rows' => 10,
+    '#required' => TRUE,
   );
-  if (variable_get('forward_allow_message', TRUE)) {
-    $form['message']['message'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Your Personal Message'),
-      '#default_value' => '',
-      '#cols' => 50,
-      '#rows' => 10,
-      '#description' => '',
-      '#required' => TRUE,
-    );
-  }
+
   $form['message']['path'] = array(
     '#type' => 'hidden',
     '#value' => $path,
   );
-//   $form['message']['path_cid'] = array(
-//     '#type' => 'hidden',
-//     '#value' => (!empty($cid['fragment'])) ? '#'.$cid['fragment'] : '',
-//   );
+
   $form['message']['forward_footer'] = array(
     '#type' => 'hidden',
     '#value' => variable_get('forward_footer', ''),
@@ -585,6 +539,43 @@ function storminvoice_send_form(&$form_state, $path = NULL, $title = NULL, $node
   return $form;
 }
 
+function storminvoice_send_form_submit($form, &$form_state) {
+  $to = $form_state['#values']['#recipients'];
+  $language = '';
+  $from = $form_state['#values']['#yemail'];
+
+  $params = array();
+  $params['subject'] = $form_state['#values']['#subject'];
+  $params['body'] = $form_state['#values']['#body'];
+  
+  drupal_mail('storminvoice', 'invoice', $to, $language, $params = array(), $from , True);
+
+// drupal_mail($module, $key, $to, $language, $params = array(), $from = NULL, $send = TRUE)
+  drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.')));
+}
+
+/**
+ * Implementation of hook_mail().
+ *
+ * Constructs the email notification message when the site is out of date.
+ *
+ * @param $key
+ *   Unique key to indicate what message to build, always 'forward_page'.
+ * @param $message
+ *   Reference to the message array being built.
+ * @param $params
+ *   Array of parameters to indicate what text to include in the message body.
+ *
+ * @see drupal_mail()
+ * @see _update_cron_notify()
+ * @see _update_message_text()
+ */
+function storminvoice_mail($key, &$message, $params) {
+  $message['subject'] .= $params['subject'];
+  $message['body'][] = $params['body'];
+  $message['headers']['MIME-Version'] = '1.0';
+  $message['headers']['Content-Type'] = 'text/html; charset=utf-8';
+}
 
 
 function storminvoice_items_submit($form, &$form_state) {
