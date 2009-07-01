@@ -430,32 +430,32 @@ function storminvoice_items_form($form_id, $header, $invoiceitems, $invoice) {
   return $form;
 }
 
-// function storminvoice_send_email($node, $language){
-//   _storminvoice_report_file_pdf( $node, $language);
-//   drupal_set_message(variable_get('storminvoice_email_pdf_file_path', ''));
-// //   print variable_get('storminvoice_email_pdf_file_path', '');
-// }
-
 
 /**
  * Page
  */
 function storminvoice_send_page($node, $language) {
+  $breadcrumb = array();
+  $breadcrumb[] = l(t('Storm'), 'storm');
+  $breadcrumb[] = l(t('Invoices'), 'storm/invoices');
+  $breadcrumb[] = l($node->title, 'node/'.$node->nid);
+
+  drupal_set_breadcrumb($breadcrumb);
   drupal_set_html_head('<meta name="robots" content="noindex, nofollow" />');
-  _storminvoice_report_file_pdf( $node, $language);
-  $pdffile=variable_get('storminvoice_email_pdf_file_path', '');
-  drupal_set_message($pdffile);
 
   $path =  'node/'. $node->nid;
 
-  return drupal_get_form('storminvoice_send_form', $path, $node, $pdffile);
+  return drupal_get_form('storminvoice_send_form', $path, $node, $language);
 }
 
 /**
  * Form
  */
-function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffile) {
+function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $language) {
   global $base_url, $user;
+
+  _storminvoice_report_file_pdf( $node, $language);
+  $pdffile=variable_get('storminvoice_email_pdf_file_path', '');
 
   $organization = node_load($node->organization_nid);
   $organization_email = $organization->email;
@@ -467,7 +467,7 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
 
   $form['message']['instructions'] = array(
     '#type' => 'item',
-    '#value' => t(variable_get('forward_instructions', '<p>Thank you for your interest in spreading the word on !site.</p><p>NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address.</p>'), array('!site' => variable_get('site_name', 'drupal'))),
+    '#value' => t(variable_get('storminvoice_email_pdf_instructions', '<p>From here you can send PDF file of invoice as attachment to your client</p><p><b>NOTE:</b> You can change subject and cover note of email. If <i>Bcc</i> field is checked you will also get copy of email.</p>')),
   );
   $form['message']['yemail'] = array(
     '#type' => 'textfield',
@@ -510,13 +510,13 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
   $form['message']['subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Message Subject'),
-    '#value' => t(variable_get('forward_'. $emailtype .'_subject', '!name has sent you invoice'), array('!name' => t('(Your Name)'))),
+    '#value' => t(variable_get('storminvoice_cover_note_subject', '')),
     '#description' => t('Enter subject for email.'),
   );
   $form['message']['body'] = array(
     '#type' => 'textarea',
     '#title' => t('Message Body'),
-    '#value' => t(variable_get('forward_'. $emailtype .'_message', '!name thought you would like to see the !site web site.'), array('!name' => t('(Your Name)'), '!site' => variable_get('site_name', 'drupal'))),
+    '#value' => t(variable_get('storminvoice_cover_note', '')),
     '#description' => 'Cover Note',
     '#cols' => 50,
     '#rows' => 10,
@@ -528,13 +528,9 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
     '#value' => $path,
   );
 
-  $form['message']['forward_footer'] = array(
-    '#type' => 'hidden',
-    '#value' => variable_get('forward_footer', ''),
-  );
   $form['message']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Send Message'),
+    '#value' => t('Send Invoice'),
   );
 
   if ($user->uid != 0) {
@@ -587,7 +583,11 @@ function storminvoice_send_form_submit($form, &$form_state) {
 
   drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , True);
 
-  drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.')));
+  drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.'),array('!email' => $to )));
+
+  if (!file_delete($pdffile)){
+     drupal_set_message(t('File !file not deleated!',array('file' => $pdffile)), 'error' );
+  };
 }
 
 /**
@@ -596,7 +596,7 @@ function storminvoice_send_form_submit($form, &$form_state) {
  * Constructs the email notification message when the site is out of date.
  *
  * @param $key
- *   Unique key to indicate what message to build, always 'forward_page'.
+ *   Unique key to indicate what message to build, always 'storminvoice_sent'.
  * @param $message
  *   Reference to the message array being built.
  * @param $params
@@ -607,6 +607,7 @@ function storminvoice_send_form_submit($form, &$form_state) {
  * @see _update_message_text()
  */
 function storminvoice_mail($key, &$message, $params) {
+
   $trenner = variable_get('storminvoice_email_pdf_trenner', '');
   $message['subject'] = $params['subject'];
   $message['body'][] = $params['body'];
@@ -846,11 +847,10 @@ function _storminvoice_report_file_pdf($node, $language) {
 
   $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
 
-
-    //Close and save PDF document as file ready for sending email
-    $dir = file_directory_path().'/'.variable_get('storminvoice_email_pdf_location', 'storminvoice').'/';
-    $pdf->Output($dir.$filename, "F");
-    variable_set('storminvoice_email_pdf_file_path', $dir.$filename);
-    variable_set('storminvoice_email_pdf_file_name', $filename);
+  $dir = file_directory_temp().'/';
+  
+  $pdf->Output($dir.$filename, "F");
+  variable_set('storminvoice_email_pdf_file_path', $dir.$filename);
+  variable_set('storminvoice_email_pdf_file_name', $filename);
 
 }

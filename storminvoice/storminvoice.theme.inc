@@ -158,7 +158,6 @@ function theme_storminvoice_list($header, $invoices, $itemsperpage, $totals_topa
  */
 function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
-// variable_get('storminvoice_email_pdf_file_path', '');
   $w = 0;
   $node->content['storminvoice'] = array(
     '#prefix' => '<div id="storminvoice" class="stormcomponent">',
@@ -191,15 +190,10 @@ function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
       '#weight' => $w++,
     );
       $node->content['storminvoice']['links']['print']['email'] = array(
-//       '#executes_submit_callback' => True,
-//       '#type' => 'submit',
-//       '#submit' => array('_storminvoice_report_file_pdf'),
       '#value' => t('Send PDF via e-mail'),
-/*      '#path' => 'storm/invoices',*/
       '#prefix' => '<div class="print_pdf">',
       '#suffix' => '</div>',
-      '#value' => l(t('Send PDF via e-mail'), 'storm/invoice/report/'. $node->nid .'/email/'. $node->language),
-//       '#callback' => 'storminvoice_send_email',
+      '#value' => l(t('Send PDF via e-mail'), 'storm/invoice/report/'. $node->nid .'/email/'. $node->language, array('query' => drupal_get_destination())),
       '#weight' => $w++,
     );
   }
@@ -355,10 +349,6 @@ function theme_storminvoice_report($node, $report, $language) {
   else if ($report=='pdf') {
     theme('storminvoice_report_pdf', $node, $language); 
   }
-//   else if ($report=='email') {
-//     _storminvoice_report_file_pdf( $node, $language);
-//     storminvoice_send_email($node);
-//   }
 }
 
 function theme_storminvoice_report_pdf($node, $language) {
