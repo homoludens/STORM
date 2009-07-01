@@ -493,6 +493,14 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
     '#required' => TRUE,
   );
 
+  $form['message']['bcc'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send me a copy'),
+    '#default_value' => 1,
+    '#description' => t('Leave this box checked if you want to receive a copy as Bcc.'),
+  );
+
+
   $form['message']['page'] = array(
       '#type' => 'item',
       '#title' => t('You are going to email the following invoice'),
@@ -540,7 +548,6 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $pdffi
 }
 
 function storminvoice_send_form_submit($form, &$form_state) {
-
   $form_filled = $form_state['clicked_button']['#post'];
 // print_r($form_state);
   $to = $form_filled['recipients'];
@@ -548,7 +555,9 @@ function storminvoice_send_form_submit($form, &$form_state) {
   $from = $form_state['values']['yname'].'<'.$form_state['values']['yemail'].'>';
 
   $params = array();
+
   $params['subject'] = $form_filled['subject'];
+  $params['bcc'] = $form_state['values']['bcc'];
 
   $trenner  = md5(uniqid(time()));
   variable_set('storminvoice_email_pdf_trenner', $trenner);
@@ -576,7 +585,7 @@ function storminvoice_send_form_submit($form, &$form_state) {
   }
   $params['body'] .= "--$trenner--";
 
-  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , False);
+  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , True);
 
   drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.')));
 }
@@ -603,6 +612,9 @@ function storminvoice_mail($key, &$message, $params) {
   $message['body'][] = $params['body'];
   $message['headers']['MIME-Version'] = '1.0';
   $message['headers']['Content-Type'] = "multipart/mixed; boundary=$trenner";
+  if ($params['bcc']){
+    $message['headers']['Bcc'] = $message['headers']['From'];
+  }
 }
 
 
