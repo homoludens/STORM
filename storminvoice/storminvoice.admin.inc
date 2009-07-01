@@ -430,11 +430,161 @@ function storminvoice_items_form($form_id, $header, $invoiceitems, $invoice) {
   return $form;
 }
 
-function storminvoice_send_email($node, $language){
+// function storminvoice_send_email($node, $language){
+//   _storminvoice_report_file_pdf( $node, $language);
+//   drupal_set_message(variable_get('storminvoice_email_pdf_file_path', ''));
+// //   print variable_get('storminvoice_email_pdf_file_path', '');
+// }
+
+
+/**
+ * Page
+ */
+function storminvoice_send_page($node, $language) {
+  drupal_set_html_head('<meta name="robots" content="noindex, nofollow" />');
   _storminvoice_report_file_pdf( $node, $language);
-  drupal_set_message(variable_get('storminvoice_email_pdf_file_path', ''));
-//   print variable_get('storminvoice_email_pdf_file_path', '');
+  $pdffile=variable_get('storminvoice_email_pdf_file_path', '');
+  drupal_set_message($pdffile);
+
+  $path =  'node/'. $node->nid;
+
+/*
+
+  if (is_numeric($nid)) {
+    // we have a node
+    $node = node_load(array('nid' => $nid));
+    if (!node_access('view', $node)) {
+      // Access is denied
+      return drupal_access_denied();
+    }
+    $form_state['values']['path'] = 'node/'. $node->nid;
+  }
+  else {
+    $args = explode('/', $form_state['values']['path']);
+    if ($args[0] == 'admin') {
+      return drupal_access_denied();
+    }
+    $node = new stdClass();
+    $node->title = $form_state['values']['path'];
+  }
+  $cid = '';
+  if (!empty($_GET['cid'])) {
+    $cid = '?cid='.$_GET['cid'];
+  }
+  $form_state['values']['path'] .= $cid;*/
+  //print "$form_state['values']['path'] - $nid - $node->title"; exit;
+  return drupal_get_form('storminvoice_send_form', $path, $node->title);
 }
+
+/**
+ * Form
+ */
+function storminvoice_send_form(&$form_state, $path = NULL, $title = NULL, $nodeapi = FALSE) {
+  global $base_url, $user;
+
+  $form = array();
+  $cid = array();
+
+    $emailtype = 'email';
+//     if (preg_match("/\?cid=/i", $path) == 1) {
+//       $paths = explode('?cid=', $path);
+//       $cid = array('fragment' => 'comment-'.$paths[1]);
+//       $path = $paths[0];
+//     }
+// 
+//   if ($nodeapi == TRUE) {
+//     $form['message'] = array(
+//       '#type' => 'fieldset',
+//       '#title' => t(variable_get('forward_link_title', 'Email this !type'), array('!type' => 'page')),
+//       '#description' => '',
+//       '#collapsed' => TRUE,
+//       '#collapsible' => TRUE,
+//     );
+//   }
+  $form['message']['instructions'] = array(
+    '#type' => 'item',
+    '#value' => t(variable_get('forward_instructions', '<p>Thank you for your interest in spreading the word on !site.</p><p>NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address.</p>'), array('!site' => variable_get('site_name', 'drupal'))),
+  );
+  $form['message']['yemail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Your Email'),
+    '#size' => 58,
+    '#maxlength' => 256,
+    '#required' => TRUE,
+  );
+  $form['message']['yname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Your Name'),
+    '#size' => 58,
+    '#maxlength' => 256,
+    '#required' => TRUE,
+  );
+  $form['message']['recipients'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Send To'),
+    //'#default_value' => str_replace(', ', "\n", $recipients),
+    '#cols' => 50,
+    '#rows' => 5,
+    '#description' => t('Enter multiple addresses on separate lines or separate them with commas.'),
+    '#required' => TRUE,
+  );
+
+  $form['message']['page'] = array(
+      '#type' => 'item',
+      '#title' => t('You are going to email the following'),
+      '#value' => l($title, $path),
+    );
+
+  $form['message']['subject'] = array(
+    '#type' => 'item',
+    '#title' => t('Message Subject'),
+    '#value' => t(variable_get('forward_'. $emailtype .'subject', '!name has sent you a message from !site'), array('!name' => t('(Your Name)'), '!site' => variable_get('site_name', 'drupal'))),
+    '#description' => '',
+  );
+  $form['message']['body'] = array(
+    '#type' => 'item',
+    '#title' => t('Message Body'),
+    '#value' => t(variable_get('forward_'. $emailtype .'message', '!name thought you would like to see the !site web site.'), array('!name' => t('(Your Name)'), '!site' => variable_get('site_name', 'drupal'))),
+    '#description' => '',
+  );
+  if (variable_get('forward_allow_message', TRUE)) {
+    $form['message']['message'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Your Personal Message'),
+      '#default_value' => '',
+      '#cols' => 50,
+      '#rows' => 10,
+      '#description' => '',
+      '#required' => TRUE,
+    );
+  }
+  $form['message']['path'] = array(
+    '#type' => 'hidden',
+    '#value' => $path,
+  );
+//   $form['message']['path_cid'] = array(
+//     '#type' => 'hidden',
+//     '#value' => (!empty($cid['fragment'])) ? '#'.$cid['fragment'] : '',
+//   );
+  $form['message']['forward_footer'] = array(
+    '#type' => 'hidden',
+    '#value' => variable_get('forward_footer', ''),
+  );
+  $form['message']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send Message'),
+  );
+
+  if ($user->uid != 0) {
+    $form['message']['yemail']['#default_value'] = $user->mail;
+    $form['message']['yemail']['#disabled'] = TRUE;
+    $form['message']['yemail']['#value'] = $user->mail;
+    $form['message']['yname']['#default_value'] = $user->name;
+  }
+
+  return $form;
+}
+
 
 
 function storminvoice_items_submit($form, &$form_state) {

@@ -191,10 +191,10 @@ function storminvoice_menu() {
   );
   
   $items['storm/invoice/report/%node/email/%'] = array(
-    'title' => t('Send Invoice'),
+    'title' => t('Send Invoice by Email'),
     'page arguments' => array(3, 5),
     'description' => t('Storm Invoice'),
-    'page callback' => 'storminvoice_send_email',
+    'page callback' => 'storminvoice_send_page',
     'access arguments' => array('Storm invoice: access'),
     'type' => MENU_CALLBACK,
     'file' => 'storminvoice.admin.inc',
