@@ -602,11 +602,9 @@ function storminvoice_admin_settings() {
     '#description' => t('The directory that contains the TCPDF library (sites/all/libraries/tcpdf is recommended)'),
     '#size' => 50,
   );
-
+  
   return system_settings_form($form);
 }
-
-
 
 function storminvoice_views_api() {
   return array(

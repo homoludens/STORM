@@ -847,7 +847,7 @@ function _storminvoice_report_file_pdf($node, $language) {
 
   $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
 
-  $dir = file_directory_temp().'/';
+  $dir = file_directory_path().'/';
   
   $pdf->Output($dir.$filename, "F");
   variable_set('storminvoice_email_pdf_file_path', $dir.$filename);

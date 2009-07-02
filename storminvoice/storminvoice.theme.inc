@@ -158,6 +158,7 @@ function theme_storminvoice_list($header, $invoices, $itemsperpage, $totals_topa
  */
 function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
+
   $w = 0;
   $node->content['storminvoice'] = array(
     '#prefix' => '<div id="storminvoice" class="stormcomponent">',
@@ -339,8 +340,6 @@ function theme_storminvoice_view($node, $teaser = FALSE, $page = FALSE) {
 
   return $node;
 }
-
-
 
 function theme_storminvoice_report($node, $report, $language) {
   if($report=='html') {
@@ -557,17 +556,9 @@ function theme_storminvoice_report_pdf($node, $language) {
 
   $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
 
-
-   //Close and output PDF document
-    $pdf->Output($filename, "I");
-
+  //Close and output PDF document
+  $pdf->Output($filename, "I");
 }
-
-
-
-
-
-
 
 function theme_storminvoice_report_html($node, $language) {
   $languages = explode(',', $language);
