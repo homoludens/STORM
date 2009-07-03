@@ -388,6 +388,30 @@ function stormproject_form(&$node) {
   return $form;
 }
 
+
+function stormproject_form_alter(&$form, $form_state, $form_id) {
+  if ('stormproject_node_form' == $form_id) {
+      $node = $form['#node'];
+      $form['group3']['datebegin'] = array(
+	'#type' => 'date_popup',
+	'#title' => t('Date begin'),
+	'#date_format' =>  'Y-m-d',
+	'#default_value' => date('Y-m-d',$node->datebegin),
+      );
+
+      $form['group3']['dateend'] = array(
+	'#type' => 'date_popup',
+	'#title' => t('Date end'),
+	'#date_format' =>  'Y-m-d',
+	'#default_value' => date('Y-m-d',$node->dateend),
+      );
+  }
+}
+
+
+
+
+
 function stormproject_insert($node) {
   _stormproject_beforesave($node);
 
@@ -430,8 +454,19 @@ function stormproject_update($node) {
 }
 
 function _stormproject_beforesave(&$node) {
-  if (is_array($node->datebegin)) $node->datebegin = _storm_date_to_gmtimestamp($node->datebegin);
-  if (is_array($node->dateend)) $node->dateend = _storm_date_to_gmtimestamp($node->dateend);
+  if (is_array($node->datebegin)){
+      $node->datebegin = _storm_date_to_gsmtimestamp($node->datebegin);
+  }
+  else {
+      $node->datebegin = strtotime($node->datebegin);
+  }
+ 
+  if (is_array($node->dateend)){
+      $node->dateend = _storm_date_to_gmtimestamp($node->dateend);
+  }
+  else {
+      $node->dateend = strtotime($node->dateend);
+  }
 }
 
 function stormproject_nodeapi(&$node, $op, $teaser, $page) {
