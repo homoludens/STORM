@@ -457,18 +457,37 @@ function stormtask_form(&$node) {
     '#weight' => -47,
   );
 
+//   $form['group4']['datebegin'] = array(
+//     '#type' => 'dateext',
+//     '#title' => t('Date begin'),
+//     '#withnull' => true,
+//     '#default_value' => _storm_gmtimestamp_to_date($node->datebegin),
+//   );
+// 
+//   $form['group4']['dateend'] = array(
+//     '#type' => 'dateext',
+//     '#title' => t('Date end'),
+//     '#withnull' => true,
+//     '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
+//   );
+
+//   print date('Y-M-d',$node->datebegin)."\n"."<br/>";
+//   print date('Y-M-d',$node->dateend)."\n";
   $form['group4']['datebegin'] = array(
-    '#type' => 'dateext',
+    '#type' => 'date_popup',
     '#title' => t('Date begin'),
-    '#withnull' => true,
-    '#default_value' => _storm_gmtimestamp_to_date($node->datebegin),
+    '#date_label_position' => 'within',
+    '#date_format' =>  'Y-M-d',
+    '#default_value' => date('Y-M-d',$node->datebegin),
   );
 
+
   $form['group4']['dateend'] = array(
-    '#type' => 'dateext',
+    '#type' => 'date_popup',
     '#title' => t('Date end'),
-    '#withnull' => true,
-    '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
+    '#date_label_position' => 'within',
+    '#date_format' =>  'Y-M-d',
+    '#default_value' => date('Y-M-d',$node->dateend),
   );
 
   $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
@@ -596,8 +615,19 @@ function _stormtask_beforesave(&$node) {
   $p = db_fetch_object($r);
   $node->project_title = $p->title;
 
-  if (is_array($node->datebegin)) $node->datebegin = _storm_date_to_gmtimestamp($node->datebegin);
-  if (is_array($node->dateend)) $node->dateend = _storm_date_to_gmtimestamp($node->dateend);
+  if (is_array($node->datebegin)){
+      $node->datebegin = _storm_date_to_gsmtimestamp($node->datebegin);
+  }
+  else {
+      $node->datebegin = strtotime($node->datebegin);
+  }
+ 
+  if (is_array($node->dateend)){
+      $node->dateend = _storm_date_to_gmtimestamp($node->dateend);
+  }
+  else {
+      $node->dateend = strtotime($node->dateend);
+  }
 }
 
 function stormtask_nodeapi(&$node, $op, $teaser, $page) {

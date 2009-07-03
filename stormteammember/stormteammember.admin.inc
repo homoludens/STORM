@@ -220,6 +220,13 @@ function stormteammember_list_filter() {
     '#options' => $persons,
   );
 
+//   $form['filter']['group1']['person_nid'] = array(
+//     '#type' => 'textfield',
+//     '#title' => t('Person'),
+//     '#size' => 25,
+//     '#autocomplete_path' => 'user/autocomplete',
+//   );
+
 
   $tree = _stormtask_get_tree($project_nid);
   $tasks = _stormtask_plain_tree($tree);
