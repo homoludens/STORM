@@ -232,3 +232,30 @@ function stormtask_views_handlers() {
     ),
   );
 }
+
+
+function stormtask_date_api_fields($field) {
+// print $field."\n";
+  if ($field == 'stormtask.datebegin') {
+    return array(
+    // The type of date: DATE_UNIX, DATE_ISO, DATE_DATETIME.
+    'sql_type' => DATE_UNIX, 
+    // Timezone handling options: 'none', 'site', 'date', 'utc'.
+    'tz_handling' => 'site',
+    // Needed only for dates that use 'date' tz_handling.
+    'timezone_field' => '', 
+    // Needed only for dates that use 'date' tz_handling.
+    'offset_field' => '', 
+    // Array of "table.field" values for related fields that should be 
+    // loaded automatically in the Views SQL.
+    'related_fields' => array(),
+    // Granularity of this date field's db data. 
+    'granularity' => array('year', 'month', 'day', 'hour', 'minute', 'second'),
+   );
+  }
+}
+
+
+function stormtask_date_api_tables() {
+  return array('stormtask');
+}

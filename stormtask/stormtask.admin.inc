@@ -1,6 +1,7 @@
 <?php
 // $Id: stormtask.admin.inc,v 1.8.4.16 2009/04/16 19:15:29 magnity Exp $
 
+
 /**
  * @file
  */
@@ -710,4 +711,3 @@ function stormtask_list_filter_filter($form, &$form_state) {
 function stormtask_list_filter_reset($form, &$form_state) {
   unset($_SESSION['stormtask_list_filter']);
 }
-
