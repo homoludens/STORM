@@ -36,6 +36,8 @@ function theme_stormticket_list($header, $tickets) {
 function theme_stormticket_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
 
+  $ticket_status_list = stormattribute_attributes_bydomain('Ticket status');
+
   $w = 0;
   $node->content['stormticket'] = array(
     '#prefix' => '<div id="stormticket" class="stormcomponent">',
@@ -80,7 +82,7 @@ function theme_stormticket_view($node, $teaser = FALSE, $page = FALSE) {
   $node->content['stormticket']['fields']['status'] = array(
     '#prefix' => '<div class="storm_status">',
     '#suffix' => '</div>',
-    '#value' => theme('storm_view_item', t('Status'), $node->ticketstatus),
+    '#value' => theme('storm_view_item', t('Status'), $ticket_status_list['values'][$node->ticketstatus]),
     '#weight' => $w++,
   );
 

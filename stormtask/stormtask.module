@@ -471,11 +471,15 @@ function stormtask_form(&$node) {
     '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
   );
 
+  $duration = _stormtask_get_duration($node->datebegin,$node->dateend);
+
   $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
+  print_r($duration_list);
   $form['group4']['durationunit'] = array(
     '#type' => 'select',
     '#title' => t('Duration unit'),
-    '#default_value' => $node->durationunit,
+    '#default_value' => $duration["unit"],
+//     '#default_value' => $node->durationunit,
     '#options' => $durationunit_list['values'],
   );
 
@@ -483,7 +487,9 @@ function stormtask_form(&$node) {
     '#type' => 'textfield',
     '#title' => t('Duration'),
     '#size' => 20,
-    '#default_value' => $node->duration,
+//     '#default_value' => $node->duration,
+    '#default_value' => $duration["time"],
+
   );
 
   $form['group5'] = array(
@@ -542,7 +548,7 @@ function stormtask_form(&$node) {
 
 
 function stormtask_form_alter(&$form, $form_state, $form_id) {
-  if (module_exists('date_api')) {
+  if (module_exists('date_api') && module_exists('date_popup')) {
     if ('stormtask_node_form' == $form_id) {
 	$node = $form['#node'];
 	$form['group4']['datebegin'] = array(
@@ -757,4 +763,45 @@ function stormtask_views_api() {
     'api' => 2,
     'path' => drupal_get_path('module', 'stormtask'),
   );
+}
+
+
+function _stormtask_get_duration($start_date,$end_date){
+		$diff = $end_date-$start_date;
+ 		$seconds = 0;
+ 		$hours   = 0;
+ 		$minutes = 0;
+
+		if($diff % 86400 <= 0){$days = $diff / 86400;}  // 86,400 seconds in a day
+		if($diff % 86400 > 0)
+		{
+			$rest = ($diff % 86400);
+			$days = ($diff - $rest) / 86400;
+     		if($rest % 3600 > 0)
+			{
+				$rest1 = ($rest % 3600);
+				$hours = ($rest - $rest1) / 3600;
+        		if($rest1 % 60 > 0)
+				{
+					$rest2 = ($rest1 % 60);
+           		$minutes = ($rest1 - $rest2) / 60;
+           		$seconds = $rest2;
+        		}
+        		else{$minutes = $rest1 / 60;}
+     		}
+     		else{$hours = $rest / 3600;}
+		}
+
+		if($days > 0){$days = $days;}
+		else{$days = false;}
+		if($hours > 0){$hours = $hours;}
+		else{$hours = false;}
+		if($minutes > 0){$minutes = $minutes;}
+		else{$minutes = false;}
+		$seconds = $seconds; // always be at least one second
+		
+		if($days){return array("time" => $days, "unit"=>"day");}
+
+		else{return array("time" => $hours, "unit"=>"hour");}
+
 }
