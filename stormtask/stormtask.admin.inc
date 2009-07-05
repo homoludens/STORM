@@ -85,7 +85,6 @@ function stormtask_tasks($project) {
 
   $taskstree = _stormtask_get_tree($project->nid, 0, -1, NULL, $where, $args);
 
-
   // Display link to jsgantt library only if library is installed.
   $o_gantt ="";
   $jsgant_dir = variable_get('stormtask_jsgantt_location', 'sites/all/libraries/jsgantt');

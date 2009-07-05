@@ -471,25 +471,26 @@ function stormtask_form(&$node) {
     '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
   );
 
-  $duration = _stormtask_get_duration($node->datebegin,$node->dateend);
+  $duration = _storm_get_duration($node->datebegin,$node->dateend);
+  $node->duration = $duration["time"];
+  $node->durationunit = $duration["unit"];
 
   $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
-  print_r($duration_list);
+
   $form['group4']['durationunit'] = array(
     '#type' => 'select',
     '#title' => t('Duration unit'),
-    '#default_value' => $duration["unit"],
-//     '#default_value' => $node->durationunit,
+    '#default_value' => $node->durationunit,
     '#options' => $durationunit_list['values'],
+    '#disabled' => TRUE,
   );
 
   $form['group4']['duration'] = array(
     '#type' => 'textfield',
     '#title' => t('Duration'),
     '#size' => 20,
-//     '#default_value' => $node->duration,
-    '#default_value' => $duration["time"],
-
+    '#default_value' => $node->duration,
+    '#disabled' => TRUE,
   );
 
   $form['group5'] = array(
@@ -766,7 +767,7 @@ function stormtask_views_api() {
 }
 
 
-function _stormtask_get_duration($start_date,$end_date){
+function _storm_get_duration($start_date,$end_date){
 		$diff = $end_date-$start_date;
  		$seconds = 0;
  		$hours   = 0;
