@@ -454,7 +454,6 @@ function storminvoice_send_page($node, $language) {
 function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $language) {
   global $base_url, $user;
 
-  _storminvoice_report_file_pdf( $node, $language);
   $pdffile=variable_get('storminvoice_email_pdf_file_path', '');
 
   $organization = node_load($node->organization_nid);
@@ -489,7 +488,7 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $langu
     '#default_value' => $organization_email,
     '#cols' => 50,
     '#rows' => 1,
-    '#description' => t('Enter multiple addresses on separate lines or separate them with commas.'),
+    '#description' => t('Enter multiple addresses and separate them with commas.'),
     '#required' => TRUE,
   );
 
@@ -568,7 +567,11 @@ function storminvoice_send_form_submit($form, &$form_state) {
   $pdffile = variable_get('storminvoice_email_pdf_file_path', '');
   $pdffile_name = variable_get('storminvoice_email_pdf_file_name', '');
   $pdffile_mime = file_get_mimetype($pdffile);
-  $pdffile_size = filesize($pdffile);
+//   $pdffile_size = filesize($pdffile);
+
+//    $node =  $form['#parameters'][3];
+//    $language = $form['#parameters'][4];
+//    $filedata = _storminvoice_report_file_pdf($node, $language);
 
   if($pdffile){
     $params['body']  .= "--$trenner"."\n";
@@ -576,16 +579,16 @@ function storminvoice_send_form_submit($form, &$form_state) {
     $params['body']  .= "Content-Disposition: attachment; filename='$pdffile_name'\n";
     $params['body']  .= "Content-Transfer-Encoding: base64\n\n";
 
-//     $node =  $form['#parameters'][3];
-//     $language = $form['#parameters'][4];
-//     $filedata = theme('storminvoice_report_pdf', $node, $language);
+    $node =  $form['#parameters'][3];
+    $language = $form['#parameters'][4];
+    $filedata = _storminvoice_report_file_pdf($node, $language);
 
-    $filedata  = fread(fopen($pdffile, "rb"), $pdffile_size);
+//     $filedata  = fread(fopen($pdffile, "rb"), $pdffile_size);
     $params['body']  .= chunk_split(base64_encode($filedata));
   }
   $params['body'] .= "--$trenner--";
 
-  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , False);
+  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , True);
 
   drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.'),array('!email' => $to )));
 
@@ -852,9 +855,9 @@ function _storminvoice_report_file_pdf($node, $language) {
   $filename = strtolower($title . '_' . $myorg->title . '_' . $organization->title . '_' . str_replace('/', '-', $node->number)) .'.pdf';
 
   $dir = file_directory_path().'/';
-  
-  $pdf->Output($dir.$filename, "F");
   variable_set('storminvoice_email_pdf_file_path', $dir.$filename);
   variable_set('storminvoice_email_pdf_file_name', $filename);
 
+  return $pdf->Output($dir.$filename, "S");
+  
 }
