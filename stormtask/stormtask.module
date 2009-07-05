@@ -471,21 +471,6 @@ function stormtask_form(&$node) {
     '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
   );
 
-//   $form['group4']['datebegin'] = array(
-//     '#type' => 'date_popup',
-//     '#title' => t('Date begin'),
-//     '#date_format' =>  'Y-m-d',
-//     '#default_value' => date('Y-m-d',$node->datebegin),
-//   );
-// 
-// 
-//   $form['group4']['dateend'] = array(
-//     '#type' => 'date_popup',
-//     '#title' => t('Date end'),
-//     '#date_format' =>  'Y-m-d',
-//     '#default_value' => date('Y-m-d',$node->dateend),
-//   );
-
   $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
   $form['group4']['durationunit'] = array(
     '#type' => 'select',
@@ -557,21 +542,23 @@ function stormtask_form(&$node) {
 
 
 function stormtask_form_alter(&$form, $form_state, $form_id) {
-  if ('stormtask_node_form' == $form_id) {
-      $node = $form['#node'];
-      $form['group4']['datebegin'] = array(
-	'#type' => 'date_popup',
-	'#title' => t('Date begin'),
-	'#date_format' =>  'Y-m-d',
-	'#default_value' => date('Y-m-d',$node->datebegin),
-      );
+  if (module_exists('date_api')) {
+    if ('stormtask_node_form' == $form_id) {
+	$node = $form['#node'];
+	$form['group4']['datebegin'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date begin'),
+	  '#date_format' =>  'Y-m-d',
+	  '#default_value' => date('Y-m-d',$node->datebegin),
+	);
 
-      $form['group4']['dateend'] = array(
-	'#type' => 'date_popup',
-	'#title' => t('Date end'),
-	'#date_format' =>  'Y-m-d',
-	'#default_value' => date('Y-m-d',$node->dateend),
-      );
+	$form['group4']['dateend'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date end'),
+	  '#date_format' =>  'Y-m-d',
+	  '#default_value' => date('Y-m-d',$node->dateend),
+	);
+    }
   }
 }
 

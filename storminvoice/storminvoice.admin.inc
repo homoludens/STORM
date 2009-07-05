@@ -576,12 +576,16 @@ function storminvoice_send_form_submit($form, &$form_state) {
     $params['body']  .= "Content-Disposition: attachment; filename='$pdffile_name'\n";
     $params['body']  .= "Content-Transfer-Encoding: base64\n\n";
 
+//     $node =  $form['#parameters'][3];
+//     $language = $form['#parameters'][4];
+//     $filedata = theme('storminvoice_report_pdf', $node, $language);
+
     $filedata  = fread(fopen($pdffile, "rb"), $pdffile_size);
     $params['body']  .= chunk_split(base64_encode($filedata));
   }
   $params['body'] .= "--$trenner--";
 
-  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , True);
+  drupal_mail('storminvoice', 'invoice', $to, $language, $params, $from , False);
 
   drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.'),array('!email' => $to )));
 

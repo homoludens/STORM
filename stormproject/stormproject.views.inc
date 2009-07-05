@@ -179,27 +179,37 @@ function stormproject_views_handlers() {
 }
 
 
+/**
+ * Implementation of hook_date_api_fields().
+ * on behalf of core fields.
+ * 
+ * All modules that create custom fields that use the 
+ * 'views_handler_field_date' handler can provide
+ * additional information here about the type of
+ * date they create so the date can be used by
+ * the Date API views date argument and date filter.
+ */
+
 function stormproject_date_api_fields($field) {
-  if ($field == 'stormproject.datebegin') {
-    return array(
-    // The type of date: DATE_UNIX, DATE_ISO, DATE_DATETIME.
+   $values = array(
     'sql_type' => DATE_UNIX, 
-    // Timezone handling options: 'none', 'site', 'date', 'utc'.
     'tz_handling' => 'site',
-    // Needed only for dates that use 'date' tz_handling.
     'timezone_field' => '', 
-    // Needed only for dates that use 'date' tz_handling.
     'offset_field' => '', 
-    // Array of "table.field" values for related fields that should be 
-    // loaded automatically in the Views SQL.
     'related_fields' => array(),
-    // Granularity of this date field's db data. 
     'granularity' => array('year', 'month', 'day', 'hour', 'minute', 'second'),
-   );
+  );
+
+  switch ($field) {
+    case 'stormproject.datebegin':
+    case 'stormproject.dateend':
+      return $values;
   }
 }
 
-
+/**
+ * Implement hook_date_api_tables().
+ */
 function stormproject_date_api_tables() {
   return array('stormproject');
 }

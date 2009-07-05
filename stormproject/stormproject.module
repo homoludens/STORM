@@ -390,21 +390,23 @@ function stormproject_form(&$node) {
 
 
 function stormproject_form_alter(&$form, $form_state, $form_id) {
-  if ('stormproject_node_form' == $form_id) {
-      $node = $form['#node'];
-      $form['group3']['datebegin'] = array(
-	'#type' => 'date_popup',
-	'#title' => t('Date begin'),
-	'#date_format' =>  'Y-m-d',
-	'#default_value' => date('Y-m-d',$node->datebegin),
-      );
+  if (module_exists('date_api')) {
+    if ('stormproject_node_form' == $form_id) {
+	$node = $form['#node'];
+	$form['group3']['datebegin'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date begin'),
+	  '#date_format' =>  'Y-m-d',
+	  '#default_value' => date('Y-m-d',$node->datebegin),
+	);
 
-      $form['group3']['dateend'] = array(
-	'#type' => 'date_popup',
-	'#title' => t('Date end'),
-	'#date_format' =>  'Y-m-d',
-	'#default_value' => date('Y-m-d',$node->dateend),
-      );
+	$form['group3']['dateend'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date end'),
+	  '#date_format' =>  'Y-m-d',
+	  '#default_value' => date('Y-m-d',$node->dateend),
+	);
+    }
   }
 }
 
