@@ -503,7 +503,7 @@ function storminvoice_send_form(&$form_state, $path = NULL, $node = NULL, $langu
   $form['message']['page'] = array(
       '#type' => 'item',
       '#title' => t('You are going to email the following invoice'),
-      '#value' => l($node->title, $pdffile),
+      '#value' => l($node->title, 'storm/invoice/report/'. $node->nid .'/pdf/'. $language),
     );
 
   $form['message']['subject'] = array(
@@ -567,11 +567,6 @@ function storminvoice_send_form_submit($form, &$form_state) {
   $pdffile = variable_get('storminvoice_email_pdf_file_path', '');
   $pdffile_name = variable_get('storminvoice_email_pdf_file_name', '');
   $pdffile_mime = file_get_mimetype($pdffile);
-//   $pdffile_size = filesize($pdffile);
-
-//    $node =  $form['#parameters'][3];
-//    $language = $form['#parameters'][4];
-//    $filedata = _storminvoice_report_file_pdf($node, $language);
 
   if($pdffile){
     $params['body']  .= "--$trenner"."\n";
@@ -583,7 +578,6 @@ function storminvoice_send_form_submit($form, &$form_state) {
     $language = $form['#parameters'][4];
     $filedata = _storminvoice_report_file_pdf($node, $language);
 
-//     $filedata  = fread(fopen($pdffile, "rb"), $pdffile_size);
     $params['body']  .= chunk_split(base64_encode($filedata));
   }
   $params['body'] .= "--$trenner--";
@@ -592,9 +586,6 @@ function storminvoice_send_form_submit($form, &$form_state) {
 
   drupal_set_message(t(variable_get('storminvoice_sent', 'You have sent invoice to !email.'),array('!email' => $to )));
 
-  if (!file_delete($pdffile)){
-     drupal_set_message(t('File !file not deleated!',array('file' => $pdffile)), 'error' );
-  };
 }
 
 /**
