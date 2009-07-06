@@ -485,9 +485,7 @@ function stormexpense_update($node) {
 function _stormexpense_beforesave(&$node) {
   $node->expensedate = _storm_date_to_gmtimestamp($node->expensedate);
 
-  if (!$node->total) {
-    $node->total = $node->amount + $node->tax;
-  }
+  $node->total = $node->amount + $node->tax;
 
   $s = "SELECT n.title FROM {node} AS n
         INNER JOIN {stormorganization} AS o ON n.nid=o.nid

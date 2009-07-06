@@ -463,17 +463,17 @@ function stormtimetracking_insert($node) {
 function stormtimetracking_update($node) {
   _stormtimetracking_beforesave($node);
 
-  db_query("UPDATE {stormtimetracking} SET
+  db_query("UPDATE {stormtimetracking} SET vid =%d,
             organization_nid=%d, organization_title='%s',
             project_nid=%d, project_title='%s',
             task_nid=%d, task_title='%s', task_stepno='%s',
             ticket_nid=%d, ticket_title='%s',
             trackingdate=%d, timebegin='%s', timeend='%s', duration=%f, billable=%d WHERE vid = %d",
-            $node->organization_nid, $node->organization_title,
+            $node->vid, $node->organization_nid, $node->organization_title,
             $node->project_nid, $node->project_title,
             $node->task_nid, $node->task_title, $node->task_stepno,
             $node->ticket_nid, $node->ticket_title,
-            $node->trackingdate, $node->timebegin, $node->timeend, $node->duration, $node->billable, $node->vid);
+            $node->trackingdate, $node->timebegin, $node->timeend, $node->duration, $node->billable, $node->old_vid);
 }
 
 function _stormtimetracking_beforesave(&$node) {
@@ -487,9 +487,8 @@ function _stormtimetracking_beforesave(&$node) {
   $node->timebegin = _timetostr($timebegin);
   $node->timeend = _timetostr($timeend);
 
-  if (!$node->duration) {
-    $node->duration = ($timeend['hour'] - $timebegin['hour'] + ($timeend['minute'] - $timebegin['minute']) / 60);
-  }
+  $node->duration = ($timeend['hour'] - $timebegin['hour'] + ($timeend['minute'] - $timebegin['minute']) / 60);
+
   if ($node->timeend < $node->timebegin) {
     $node->duration += 24;
   }

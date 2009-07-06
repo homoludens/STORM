@@ -227,6 +227,7 @@ function stormproject_form(&$node) {
 
   if (arg(1)=='add') {
     $node->datebegin = time();
+    $node->dateend = time();
 
     if (array_key_exists('organization_nid', $_GET) && !$node->organization) {
       $node->organization_nid = $_GET['organization_nid'];
