@@ -528,7 +528,7 @@ function stormtask_form(&$node) {
       '#type' => 'textarea',
       '#title' => check_plain($type->body_label),
       '#default_value' => $node->body,
-      '#rows' => 20,
+      '#rows' => 3,
       '#required' => ($type->min_word_count > 0),
     );
     $form['body_filter']['format'] = filter_form($node->format);

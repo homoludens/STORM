@@ -361,7 +361,8 @@ function storm_icon_add($path, $item, $params=array()) {
   } // End workaround
   $af = $type .'_access';
   if (!$af('create', $item, $user)) return '';
-  return storm_icon_l('application_add', $path, t('Add'), '', $params);
+  $attributes = array('class' => 'popups-form');
+  return storm_icon_l('application_add', $path, t('Add'), '', $params, $attributes);
 }
 
 function storm_icon_edit($path, $item, $params=array()) {
@@ -373,7 +374,8 @@ function storm_icon_edit($path, $item, $params=array()) {
   } // End workaround  
   $af = $type .'_access';
   if (!$af('update', $item, $user)) return '';
-  return storm_icon_l('application_edit', $path, t('Edit'), '', $params);
+  $attributes = array('class' => 'popups-form');
+  return storm_icon_l('application_edit', $path, t('Edit'), '', $params, $attributes);
 }
 
 function storm_icon_delete($path, $item, $params=array()) {

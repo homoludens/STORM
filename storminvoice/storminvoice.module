@@ -745,12 +745,8 @@ function storminvoiceitem_update($node) {
 }
 
 function _storminvoiceitem_beforesave(&$node) {
-  if (!$node->tax) {
     $node->tax = $node->amount * $node->taxpercent * .01;
-  }
-  if (!$node->total) {
     $node->total = $node->amount + $node->tax;
-  }
 }
 
 function _storminvoiceitem_aftersave(&$node) {
