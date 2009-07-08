@@ -523,6 +523,59 @@ function stormtask_form(&$node) {
     '#options' => $currency_list['values'],
   );
 
+
+
+
+  $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
+              ON so.nid=n.nid WHERE n.status=1 AND (so.isactive=1 OR n.nid=%d) AND n.type='stormorganization' ORDER BY n.title";
+
+  $s_org = stormorganization_access_sql($s_org);
+  $s_org = db_rewrite_sql($s_org);
+  $r = db_query($s_org, $node->organization_nid);
+  $organizations = array();
+  while ($organization = db_fetch_object($r)) {
+    $organizations[$organization->nid] = $organization->title;
+    if (!$teammember->organization_nid) $teammember->organization_nid = $organization->nid;
+    if (!$teammember->person_organization_nid) $teammember->person_organization_nid = $organization->nid;
+  }
+
+
+  $form['group6']['person_organization_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person organization'),
+    '#default_value' => $node->person_organization_nid,
+    '#options' => $organizations,
+    '#required' => true,
+    '#attributes' => array('onchange' => "stormperson_organization_people(this, 'edit-person-nid', true, '-')"),
+  );
+
+  $s = "SELECT n.nid, n.title FROM {stormperson} spe INNER JOIN {node} n 
+              ON spe.vid=n.vid WHERE n.status=1 AND spe.organization_nid=%d AND n.type='stormperson' ORDER BY n.title";
+
+  $s = stormperson_access_sql($s);
+  $s = db_rewrite_sql($s);
+  $r = db_query($s, $node->person_organization_nid);
+  $people = array();
+  while ($person = db_fetch_object($r)) {
+    $people[$person->nid] = $person->title;
+  }
+  $people = array(0 => '-') + $people;
+
+  $form['group6']['person_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person'),
+    '#default_value' => $node->person_nid,
+    '#options' => $people,
+    '#required' => true,
+    '#process' => array('storm_dependent_select_process'),
+  );
+
+
+
+
+
+
+
   if ($type->has_body) {
     $form['body_filter']['#weight'] = -44;
     $form['body_filter']['body'] = array(
