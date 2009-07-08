@@ -522,9 +522,9 @@ function stormtask_form(&$node) {
     '#default_value' => $node->currency,
     '#options' => $currency_list['values'],
   );
-
-
-
+// You must execute this two sql commands
+// ALTER TABLE stormtask ADD person_organization INT;
+// ALTER TABLE stormtask ADD person INT;
 
   $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
               ON so.nid=n.nid WHERE n.status=1 AND (so.isactive=1 OR n.nid=%d) AND n.type='stormorganization' ORDER BY n.title";
@@ -631,15 +631,15 @@ function stormtask_insert($node) {
     (vid, nid, stepno, taskcategory, taskstatus, taskpriority,
     organization_nid, organization_title,
     project_nid, project_title, parent_nid, weight,
-    datebegin, dateend, durationunit, duration, pricemode, price, currency)
+    datebegin, dateend, durationunit, duration, pricemode, price, currency, person_organization_nid, person_nid)
     VALUES
     (%d, %d, '%s', '%s', '%s', '%s',
     %d, '%s',
-    %d, '%s', %d, %d, %d, %d, '%s', %f, '%s', %f, '%s')",
+    %d, '%s', %d, %d, %d, %d, '%s', %f, '%s', %f, '%s', %d, %d)",
     $node->vid, $node->nid, $node->stepno, $node->taskcategory, $node->taskstatus, $node->taskpriority,
     $node->organization_nid, $node->organization_title, $node->project_nid, $node->project_title,
     $node->parent_nid, $node->weight, $node->datebegin, $node->dateend, $node->durationunit, $node->duration,
-    $node->pricemode, $node->price, $node->currency);
+    $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid);
 }
 
 function stormtask_update($node) {
@@ -654,14 +654,14 @@ function stormtask_update($node) {
       organization_nid=%d, organization_title='%s',
       project_nid=%d, project_title='%s',
       parent_nid=%d, weight=%d, datebegin=%d, dateend=%d, durationunit='%s', duration=%f,
-      pricemode='%s', price=%f, currency='%s' 
+      pricemode='%s', price=%f, currency='%s' , person_organization_nid = %d, person_nid=%d
       WHERE vid = %d",
       $node->stepno, $node->taskcategory, $node->taskstatus, $node->taskpriority,
       $node->organization_nid, $node->organization_title,
       $node->project_nid, $node->project_title,
       $node->parent_nid,
       $node->weight, $node->datebegin, $node->dateend, $node->durationunit, $node->duration, 
-      $node->pricemode, $node->price, $node->currency, $node->vid);
+      $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid, $node->vid);
     if (($node->title != $node->title_old) || ($node->stepno != $node->stepno_old)) {
       module_invoke_all('stormtask_change', $node->nid, $node->stepno, $node->title);
     }

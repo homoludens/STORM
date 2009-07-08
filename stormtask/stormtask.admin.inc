@@ -408,6 +408,14 @@ function stormtask_list() {
       'field' => 'sta.taskpriority',
     ),
     array(
+      'data' => t('Person'),
+      'field' => 'sta.person_nid',
+    ),
+    array(
+      'data' => t('Person Organization'),
+      'field' => 'sta.person_organization_nid',
+    ),
+    array(
       'data' => storm_icon_add_node($i, $_GET),
       'class' => 'storm_list_operations',
     ),
@@ -425,6 +433,18 @@ function stormtask_list() {
     $where[] = 'sta.project_nid=%d';
     $args[] = $_SESSION['stormtask_list_filter']['project_nid'];
   }
+
+  if ($_SESSION['stormtask_list_filter']['person_organization_nid']) {
+    $where[] = 'sta.person_organization_nid=%d';
+    $args[] = $_SESSION['stormtask_list_filter']['person_organization_nid'];
+  }
+
+
+  if ($_SESSION['stormtask_list_filter']['person_nid']) {
+    $where[] = 'sta.person_nid=%d';
+    $args[] = $_SESSION['stormtask_list_filter']['person_nid'];
+  }
+
   if ($_SESSION['stormtask_list_filter']['taskcategory'] && $_SESSION['stormtask_list_filter']['taskcategory'] != '-') {
     $category = split(',', $_SESSION['stormtask_list_filter']['taskcategory']);
     $v = array();
@@ -540,8 +560,9 @@ function stormtask_list_filter() {
   $organization_nid = $_SESSION['stormtask_list_filter']['organization_nid'];
   $project_nid = $_SESSION['stormtask_list_filter']['project_nid'];
 
-  $datebeginfrom = $_SESSION['stormtask_list_filter']['datebeginfrom'];
-  $datebeginto = $_SESSION['stormtask_list_filter']['datebeginto'];
+  $person_organization_nid = $_SESSION['stormtask_list_filter']['person_organization_nid'];
+  $person_nid = $_SESSION['stormtask_list_filter']['person_nid'];
+
   $dateendfrom = $_SESSION['stormtask_list_filter']['dateendfrom'];
   $dateendto = $_SESSION['stormtask_list_filter']['dateendto'];
 
@@ -651,18 +672,31 @@ function stormtask_list_filter() {
     '#theme' => 'storm_form_group',
   );
 
-  $form['filter']['group4']['dateendfrom'] = array(
-    '#type' => 'dateext',
-    '#withnull' => 'true',
-    '#title' => t('Date end from'),
-    '#default_value' => $dateendfrom,
+  $form['filter']['group4']['person_organization_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person organization'),
+    '#default_value' => $person_organization_nid,
+    '#options' => $organizations,
+//     '#attributes' => array('onchange' => "stormproject_organization_projects(this, 'edit-project-nid', true, 'All')"),
   );
 
-  $form['filter']['group4']['dateendto'] = array(
-    '#type' => 'dateext',
-    '#withnull' => 'true',
-    '#title' => t('Date end to'),
-    '#default_value' => $dateendto,
+
+  $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormperson} AS sor ON sor.vid=n.vid
+  WHERE n.status=1 AND n.type='stormperson' ORDER BY n.title";
+  $s = stormorganization_access_sql($s);
+  $s = db_rewrite_sql($s);
+  $r = db_query($s);
+  $persons = array();
+  while ($person = db_fetch_object($r)) {
+    $persons[$person->nid] = $person->title;
+  }
+  $persons = array(0 => t('All')) + $persons;
+
+  $form['filter']['group4']['person_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person'),
+    '#default_value' => $person_nid,
+    '#options' => $persons,
   );
 
   $form['filter']['group5'] = array(
@@ -705,6 +739,9 @@ function stormtask_list_filter_filter($form, &$form_state) {
   $_SESSION['stormtask_list_filter']['dateendfrom'] = $form_state['values']['dateendfrom'];
   $_SESSION['stormtask_list_filter']['dateendto'] = $form_state['values']['dateendto'];
   $_SESSION['stormtask_list_filter']['itemsperpage'] = $form_state['values']['itemsperpage'];
+
+  $_SESSION['stormtask_list_filter']['person_nid'] = $form_state['values']['person_nid'];
+  $_SESSION['stormtask_list_filter']['person_organization_nid'] = $form_state['values']['person_organization_nid'];
 }
 
 function stormtask_list_filter_reset($form, &$form_state) {
