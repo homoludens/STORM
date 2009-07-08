@@ -411,10 +411,10 @@ function stormtask_list() {
       'data' => t('Person'),
       'field' => 'sta.person_nid',
     ),
-    array(
-      'data' => t('Person Organization'),
-      'field' => 'sta.person_organization_nid',
-    ),
+//     array(
+//       'data' => t('Person Organization'),
+//       'field' => 'sta.person_organization_nid',
+//     ),
     array(
       'data' => storm_icon_add_node($i, $_GET),
       'class' => 'storm_list_operations',

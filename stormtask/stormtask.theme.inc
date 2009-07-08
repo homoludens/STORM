@@ -54,6 +54,8 @@ function theme_stormtask_list($header, $tasks) {
     $n->uid = $task->uid;
     $n->organization_nid = $task->organization_nid;
     $n->type = 'stormtask';
+    $node_person = node_load($task->person_nid);
+
 
     $rows[] = array(
       l($task->organization_title, 'node/'. $task->organization_nid),
@@ -62,8 +64,8 @@ function theme_stormtask_list($header, $tasks) {
       storm_icon('category_'. $task->taskcategory, $task->taskcategory),
       storm_icon('status_'. $task->taskstatus, $task->taskstatus),
       storm_icon('priority_'. $task->taskpriority, $task->taskpriority),
-      l($task->person_nid, 'node/'. $task->person_nid),
-      l($task->person_organization_nid, 'node/'. $task->person_organization_nid),
+      l($node_person->fullname, 'node/'. $task->person_nid),
+//       l($task->person_organization_nid, 'node/'. $task->person_organization_nid),
       array(
         'data' => storm_icon_edit_node($n, $_GET) .'&nbsp;'. storm_icon_delete_node($n, $_GET),
         'class' => 'storm_list_operations',
