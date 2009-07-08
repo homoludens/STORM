@@ -535,8 +535,8 @@ function stormtask_form(&$node) {
   $organizations = array();
   while ($organization = db_fetch_object($r)) {
     $organizations[$organization->nid] = $organization->title;
-    if (!$teammember->organization_nid) $teammember->organization_nid = $organization->nid;
-    if (!$teammember->person_organization_nid) $teammember->person_organization_nid = $organization->nid;
+    if (!$node->organization_nid) $node->organization_nid = $organization->nid;
+    if (!$node->person_organization_nid) $node->person_organization_nid = $organization->nid;
   }
 
 
