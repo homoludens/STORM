@@ -570,12 +570,6 @@ function stormtask_form(&$node) {
     '#process' => array('storm_dependent_select_process'),
   );
 
-
-
-
-
-
-
   if ($type->has_body) {
     $form['body_filter']['#weight'] = -44;
     $form['body_filter']['body'] = array(

@@ -1,7 +1,6 @@
 <?php
 // $Id: stormtask.admin.inc,v 1.8.4.16 2009/04/16 19:15:29 magnity Exp $
 
-
 /**
  * @file
  */
@@ -439,7 +438,6 @@ function stormtask_list() {
     $args[] = $_SESSION['stormtask_list_filter']['person_organization_nid'];
   }
 
-
   if ($_SESSION['stormtask_list_filter']['person_nid']) {
     $where[] = 'sta.person_nid=%d';
     $args[] = $_SESSION['stormtask_list_filter']['person_nid'];
@@ -563,6 +561,8 @@ function stormtask_list_filter() {
   $person_organization_nid = $_SESSION['stormtask_list_filter']['person_organization_nid'];
   $person_nid = $_SESSION['stormtask_list_filter']['person_nid'];
 
+  $datebeginfrom = $_SESSION['stormtask_list_filter']['datebeginfrom'];
+  $datebeginto = $_SESSION['stormtask_list_filter']['datebeginto'];
   $dateendfrom = $_SESSION['stormtask_list_filter']['dateendfrom'];
   $dateendto = $_SESSION['stormtask_list_filter']['dateendto'];
 
@@ -672,7 +672,26 @@ function stormtask_list_filter() {
     '#theme' => 'storm_form_group',
   );
 
-  $form['filter']['group4']['person_organization_nid'] = array(
+  $form['filter']['group4']['dateendfrom'] = array(
+    '#type' => 'dateext',
+    '#withnull' => 'true',
+    '#title' => t('Date end from'),
+    '#default_value' => $dateendfrom,
+  );
+
+  $form['filter']['group4']['dateendto'] = array(
+    '#type' => 'dateext',
+    '#withnull' => 'true',
+    '#title' => t('Date end to'),
+    '#default_value' => $dateendto,
+  );
+
+  $form['filter']['group5'] = array(
+    '#type' => 'markup',
+    '#theme' => 'storm_form_group',
+  );
+
+  $form['filter']['group5']['person_organization_nid'] = array(
     '#type' => 'select',
     '#title' => t('Person organization'),
     '#default_value' => $person_organization_nid,
@@ -692,31 +711,31 @@ function stormtask_list_filter() {
   }
   $persons = array(0 => t('All')) + $persons;
 
-  $form['filter']['group4']['person_nid'] = array(
+  $form['filter']['group5']['person_nid'] = array(
     '#type' => 'select',
     '#title' => t('Person'),
     '#default_value' => $person_nid,
     '#options' => $persons,
   );
 
-  $form['filter']['group5'] = array(
+  $form['filter']['group6'] = array(
     '#type' => 'markup',
     '#theme' => 'storm_form_group',
   );
 
-  $form['filter']['group5']['submit'] = array(
+  $form['filter']['group6']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Filter'),
     '#submit' => array('stormtask_list_filter_filter'),
   );
 
-  $form['filter']['group5']['reset'] = array(
+  $form['filter']['group6']['reset'] = array(
     '#type' => 'submit',
     '#value' => t('Reset'),
     '#submit' => array('stormtask_list_filter_reset'),
   );
 
-  $form['filter']['group5']['itemsperpage'] = array(
+  $form['filter']['group6']['itemsperpage'] = array(
     '#type' => 'textfield',
     '#title' => t('Items'),
     '#size' => 10,
