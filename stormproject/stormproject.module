@@ -128,15 +128,6 @@ function stormproject_access_sql($sql, $where = array()) {
 
   global $user;
 
-//   $s = "SELECT project_nid FROM {stormteammember} AS stm INNER JOIN  {stormperson} AS sper ON sper.nid = stm.person_nid WHERE sper.user_uid = %d";
-//   $r = db_query($s, $account->uid);
-//   $projects = array();
-//   $projects_nids = array();
-//   while ($projects = db_fetch_object($r)) {
-//     $projects_nids[]=$projects->project_nid;
-//   }
-//   print_r($projects_nids);
-
   $cond = '';
   if (user_access('Storm project: view own')) {
     $cond .= 'n.uid='. $user->uid;
@@ -145,11 +136,6 @@ function stormproject_access_sql($sql, $where = array()) {
     if (!empty($cond)) $cond .= ' OR ';
     $cond .= 'spr.organization_nid='. $user->stormorganization_nid;
   }
-  
-//   if (user_access('Storm project: view of user organization')) {
-//     if (!empty($cond)) $cond .= ' OR ';
-//     $cond .= 'spr.organization_nid='. $user->uid;
-//   }
   
   if (empty($cond)) $cond = '0=1';
   $where[] = $cond;
