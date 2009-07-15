@@ -72,9 +72,7 @@ function stormproject_access($op, $node, $account=NULL) {
 //   while ($projects = db_fetch_object($r)) {
 //     $projects->project_nid = $projects->title;
 //   }
-//   print "project_nid: ".$projects->project_nid."\n";
-//   print "node->nid:   ".$node->nid."\n";
-//   print "user->uid:   ".$account->uid."\n";
+
  if ($op == 'create') {
     return user_access('Storm project: add');
   }
