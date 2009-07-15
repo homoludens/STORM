@@ -177,4 +177,3 @@ function _stormperson_organization_people_js($organization_nid=0) {
   print drupal_to_js($people);
   exit();
 }
-
