@@ -30,6 +30,7 @@ function stormproject_perm() {
     'Storm project: view all',
     'Storm project: view own',
     'Storm project: view of user organization',
+    'Storm project: view of user team',
   );
 }
 
@@ -110,7 +111,7 @@ function stormproject_access($op, $node, $account=NULL) {
     else if (user_access('Storm project: view of user organization') && ($account->stormorganization_nid == $node->organization_nid)) {
       return TRUE;
     }
-    else if (user_access('Storm project: view of user organization') && ($projects->project_nid)) {
+    else if (user_access('Storm project: view of user team') && ($projects->project_nid)) {
       return TRUE;
     }
   }
@@ -134,8 +135,7 @@ function stormproject_access_sql($sql, $where = array()) {
     $cond .= 'spr.organization_nid='. $user->stormorganization_nid;
   }
 
-  if (user_access('Storm project: view of user organization')) {
-
+  if (user_access('Storm project: view of user team')) {
     $s = "SELECT project_nid FROM {stormteammember} AS stm INNER JOIN  {stormperson} AS sper ON sper.nid = stm.person_nid WHERE sper.user_uid = %d";
     $r = db_query($s, $user->uid);
     $projects = array();
