@@ -1,0 +1,769 @@
+<?php
+// $Id: stormbudget.module,v 1.6.4.29 2009/06/08 14:01:54 magnity Exp $
+
+/**
+ * @file
+ */
+
+function stormbudget_help($path, $arg) {
+  $o = '';
+
+  switch ($path) {
+    case "admin/help#stormbudget":
+      $o = '<p>'. t("Provides Budget support for Storm") .'</p>';
+      break;
+  }
+
+  return $o;
+}
+
+function stormbudget_perm() {
+  return array(
+    'Storm budget: access',
+    'Storm budget: add',
+    'Storm budget: delete all',
+    'Storm budget: delete own',
+    'Storm budget: delete of user organization',
+    'Storm budget: edit all',
+    'Storm budget: edit own',
+    'Storm budget: edit of user organization',
+    'Storm budget: view all',
+    'Storm budget: view own',
+    'Storm budget: view of user organization',
+  );
+}
+
+function stormbudget_init() {
+  $settings = array(
+    'storm' => array(
+      'project_budgetitems_url' => url('storm/project_budgetitems_js/')
+    ),
+  );
+  drupal_add_js($settings, 'setting');
+  drupal_add_js(drupal_get_path('module', 'stormbudget') .'/stormbudget.js', 'module', 'header', FALSE);
+}
+
+function stormbudget_access($op, $node, $account=NULL) {
+  if (empty($account)) {
+    global $user;
+    $account = $user;
+  }
+
+  if (is_numeric($node)) $node = node_load($node);
+
+  if ($op == 'create') {
+    return user_access('Storm budget: add');
+  }
+
+  if ($op == 'delete') {
+    if (user_access('Storm budget: delete all')) {
+      return TRUE;
+    }
+    else if (user_access('Storm budget: delete own') && ($account->uid == $node->uid)) {
+      return TRUE;
+    }
+    else if (user_access('Storm budget: delete of user organization') && ($account->stormorganization_nid == $node->organization_nid)) {
+      return TRUE;
+    }
+  }
+
+  if ($op == 'update') {
+    if (user_access('Storm budget: edit all')) {
+      return TRUE;
+    }
+    else if (user_access('Storm budget: edit own') && ($account->uid == $node->uid)) {
+      return TRUE;
+    }
+    else if (user_access('Storm budget: edit of user organization') && ($account->stormorganization_nid == $node->organization_nid)) {
+      return TRUE;
+    }
+  }
+
+  if ($op == 'view') {
+    if (user_access('Storm budget: view all')) {
+      return TRUE;
+    }
+    else if (user_access('Storm budget: view own') && ($account->uid == $node->uid)) {
+      return TRUE;
+    }
+    else if (user_access('Storm budget: view of user organization') && ($account->stormorganization_nid == $node->organization_nid)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+function stormbudget_access_sql($sql, $where = array()) {
+  if (user_access('Storm budget: view all')) {
+    $where[] = "'storm_access'='storm_access'";
+    return storm_rewrite_sql($sql, $where);
+  }
+
+  global $user;
+
+  $cond = '';
+  if (user_access('Storm budget: view own')) {
+    $cond .= 'n.uid='. $user->uid;
+  }
+  if (user_access('Storm budget: view of user organization')) {
+    if (!empty($cond)) $cond .= ' OR ';
+    $cond .= 'sta.organization_nid='. $user->stormorganization_nid;
+  }
+  if (empty($cond)) $cond = '0=1';
+  $where[] = $cond;
+
+  $where[] = "'storm_access'='storm_access'";
+  return storm_rewrite_sql($sql, $where);
+}
+
+function stormbudget_storm_rewrite_where_sql($query, $primary_table, $account) {
+  static $conds = array();
+
+  if ($conds[$account->uid]) {
+    return $conds[$account->uid];
+  }
+
+  if (preg_match("/'storm_access'='storm_access'/", $query)) {
+    $cond = '';
+  }
+  else {
+    if (user_access('Storm budget: view all', $account)) {
+      return '';
+    }
+
+    $cond = '';
+    if (user_access('Storm budget: view own', $account)) {
+      $cond .= " ${primary_table}.uid=". $account->uid;
+    }
+    if (user_access('Storm budget: view of user organization', $account)) {
+      if ($cond) {
+        $cond .= ' OR ';
+      }
+      // If function is called without viewing a budgetitem, this variable may not be set.
+      // These lines check for that and set the organization node id to zero if not otherwise set.
+      if (!isset($account->stormorganization_nid)) {
+        $account->stormorganization_nid = 0;
+      }
+      $cond .= ' sta1.organization_nid='. $account->stormorganization_nid;
+    }
+    if ($cond) {
+      $cond = " WHEN 'stormbudget' THEN (SELECT IF($cond,1,0) FROM {stormbudget} sta1 WHERE sta1.vid=${primary_table}.vid) ";
+    }
+    else {
+      $cond = " WHEN 'stormbudget' THEN 0 ";
+    }
+  }
+
+  $conds[$account->uid] = $cond;
+  return $cond;
+}
+
+function stormbudget_menu() {
+  $items['node/%node/budget'] = array(
+    'title' => t('Budget'),
+    'page callback' => 'stormbudget_budgetitems',
+    'page arguments' => array(1),
+    'access callback' => '_stormbudget_budgetitems_access',
+    'access arguments' => array(1),
+    'file' => 'stormbudget.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4
+  );
+  $items['storm/project_budgetitems_js/%'] = array(
+    'title' => t('Budget items'),
+    'page callback' => '_stormbudget_project_budgetitems_js',
+    'page arguments' => array(2),
+    'access arguments' => array('Storm budget: access'),
+    'file' => 'stormbudget.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['storm/budget'] = array(
+    'title' => t('Budget items'),
+    'description' => t('Storm budget items'),
+    'page callback' => 'stormbudget_list',
+    'access arguments' => array('Storm budget: access'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'stormbudget.admin.inc',
+  );
+
+  $items['admin/storm/budget'] = array(
+    'title' => t('Storm budget'),
+    'description' => t('Storm budget Administration Page'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('stormbudget_admin_settings'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+
+function stormbudget_admin_settings() {
+  $form = array();
+  
+  return system_settings_form($form);
+}
+
+
+function stormbudget_theme() {
+  return array(
+    'stormbudget_list' => array(
+      'file'      => 'stormbudget.theme.inc',
+      'arguments' => array('header', 'budgetitems'),
+    ),
+    'stormbudget_budgetitems' => array(
+      'file'      => 'stormbudget.theme.inc',
+      'arguments' => array('form'),
+    ),
+    'stormbudget_view' => array(
+      'file'      => 'stormbudget.theme.inc',
+      'arguments' => array('node', 'teaser', 'page'),
+    ),
+  );
+}
+
+function stormbudget_node_info() {
+  return array(
+    'stormbudget' => array(
+      'name' => t('Budget item'),
+      'module' => 'stormbudnget',
+      'description' => t("A budget item for Storm."),
+      'title_label' => t("Title"),
+      'body_label' => t("Description"),
+    )
+  );
+}
+
+function stormbudget_stormorganization_change($organization_nid, $organization_title) {
+  $s = "UPDATE {stormbudget} SET organization_title='%s' WHERE organization_nid=%d AND organization_title <> '%s'";
+  db_query($s, $organization_title, $organization_nid, $organization_title);
+}
+
+function stormbudget_stormproject_change($project_nid, $project_title) {
+  $s = "UPDATE {stormbudget} SET project_title='%s' WHERE project_nid=%d AND project_title <> '%s'";
+  db_query($s, $project_title, $project_nid, $project_title);
+}
+
+function stormbudget_form(&$node) {
+  $breadcrumb = array();
+  $breadcrumb[] = l(t('Storm'), 'storm');
+
+  if (array_key_exists('project_nid', $_GET)) {
+    $breadcrumb[] = l(t('Projects'), 'storm/projects');
+    $project = node_load($_GET['project_nid']);
+    $breadcrumb[] = l(t('Project : '. $project->title), 'node/'. $project->nid);
+    $breadcrumb[] = l(t('Budget'), 'node/'. $project->nid .'/budget');
+  }
+  else {
+    $breadcrumb[] = l(t('Budget'), 'storm/budget');
+  }
+
+  drupal_set_breadcrumb($breadcrumb);
+
+  if (arg(1)=='add') {
+    $node->datebegin = time();
+    $node->dateend = time();
+
+    if (array_key_exists('organization_nid', $_GET) && !$node->organization_nid) {
+      $node->organization_nid = $_GET['organization_nid'];
+    }
+    if (array_key_exists('project_nid', $_GET) && !$node->project_nid) {
+      $node->project_nid = $_GET['project_nid'];
+      $p = node_load($node->project_nid);
+      $node->organization_nid = $p->organization_nid;
+    }
+
+    if (array_key_exists('parent_nid', $_GET) && !$node->parent_nid) {
+      $node->parent_nid = $_GET['parent_nid'];
+    }
+
+    if ($_SESSION['stormbudget_list_filter']['organization_nid'] && !$node->organization_nid) {
+      $node->organization_nid = $_SESSION['stormbudget_list_filter']['organization_nid'];
+    }
+    if ($_SESSION['stormbudget_list_filter']['project_nid'] && !$node->project_nid) {
+      $node->project_nid = $_SESSION['stormbudget_list_filter']['project_nid'];
+    }
+    $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
+              ON so.nid=n.nid WHERE n.status=1 AND so.isactive=1 AND so.iscustomer=1 AND n.type='stormorganization' ORDER BY n.title";
+  }
+  else {
+    $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
+      ON so.nid=n.nid WHERE n.status=1 AND so.iscustomer=1 AND n.type='stormorganization' ORDER BY n.title";
+  }
+
+  $type = node_get_types('type', $node);
+
+  $form['#attributes']['class'] = 'stormcomponent_node_form';
+
+  $form['group1'] = array(
+    '#type' => 'markup',
+    '#theme' => 'storm_form_group',
+    '#weight' => -50,
+  );
+
+  $s_org = stormorganization_access_sql($s_org);
+  $s_org = db_rewrite_sql($s_org);
+  $r = db_query($s_org);
+  $organizations = array();
+  while ($organization = db_fetch_object($r)) {
+    $organizations[$organization->nid] = $organization->title;
+    if (!$node->organization_nid) $node->organization_nid = $organization->nid;
+  }
+  $form['group1']['organization_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Organization'),
+    '#default_value' => $node->organization_nid,
+    '#options' => $organizations,
+    '#required' => true,
+    '#attributes' => array('onchange' => "stormbudget_organization_project_budgetitems(this, 'edit-project-nid', 'edit-parent-nid', true, '-')"),
+  );
+
+  $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormproject} AS spr ON spr.vid=n.vid
+  WHERE n.status=1 AND spr.organization_nid=%d AND n.type='stormproject' ORDER BY n.title";
+  $s = stormproject_access_sql($s);
+  $s = db_rewrite_sql($s);
+  $r = db_query($s, $node->organization_nid);
+  $projects = array();
+  while ($project = db_fetch_object($r)) {
+    $projects[$project->nid] = $project->title;
+    if (!$node->project_nid) $node->project_nid = $project->nid;
+  }
+  $form['group1']['project_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Project'),
+    '#default_value' => $node->project_nid,
+    '#options' => $projects,
+    '#process' => array('storm_dependent_select_process'),
+    '#required' => true,
+    '#attributes' => array('onchange' => "stormbudget_project_budgetitems(this, 'edit-parent-nid', true, '-')"),
+  );
+
+  $tree = _stormbudget_get_tree($node->project_nid);
+  $parent_budgetitems = _stormbudget_plain_tree($tree);
+  $form['group1']['parent_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Parent budgetitem'),
+    '#default_value' => $node->parent_nid,
+    '#options' => array(0 => '-') + $parent_budgetitems,
+    '#process' => array('storm_dependent_select_process'),
+  );
+
+  $form['group1']['weight'] = array(
+    '#type' => 'weight',
+    '#title' => t('Weight'),
+    '#default_value' => $node->weight,
+  );
+
+  $form['group2'] = array(
+    '#type' => 'markup',
+    '#theme' => 'storm_form_group',
+    '#weight' => -49,
+  );
+
+  $form['group2']['stepno'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Step no.'),
+    '#size' => 15,
+    '#required' => FALSE,
+    '#default_value' => $node->stepno,
+  );
+
+  $form['group2']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => check_plain($type->title_label),
+    '#required' => TRUE,
+    '#default_value' => $node->title,
+  );
+
+  $form['group3'] = array(
+    '#type' => 'markup',
+    '#theme' => 'storm_form_group',
+    '#weight' => -48,
+  );
+
+  $budgetitemcategory_list = stormattribute_attributes_bydomain('Budget item category');
+  $form['group3']['budgetitemcategory'] = array(
+    '#type' => 'select',
+    '#title' => t('Category'),
+    '#default_value' => $node->budgetitemcategory,
+    '#options' => $budgetitemcategory_list['values'],
+  );
+
+  $budgetitemstatus_list = stormattribute_attributes_bydomain('Budget item status');
+  $form['group3']['budgetitemstatus'] = array(
+    '#type' => 'select',
+    '#title' => t('Status'),
+    '#default_value' => $node->budgetitemstatus,
+    '#options' => $budgetitemstatus_list['values'],
+  );
+
+  $budgetitempriority_list = stormattribute_attributes_bydomain('Budget item priority');
+  $form['group3']['budgetitempriority'] = array(
+    '#type' => 'select',
+    '#title' => t('Priority'),
+    '#default_value' => $node->budgetitempriority,
+    '#options' => $budgetitempriority_list['values'],
+  );
+
+  $form['group4'] = array(
+    '#type' => 'markup',
+    '#theme' => 'storm_form_group',
+    '#weight' => -47,
+  );
+
+  $form['group4']['datebegin'] = array(
+    '#type' => 'dateext',
+    '#title' => t('Date begin'),
+    '#withnull' => true,
+    '#default_value' => _storm_gmtimestamp_to_date($node->datebegin),
+  );
+
+  $form['group4']['dateend'] = array(
+    '#type' => 'dateext',
+    '#title' => t('Date end'),
+    '#withnull' => true,
+    '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
+  );
+
+  $duration = _storm_get_duration($node->datebegin,$node->dateend);
+  $node->duration = $duration["time"];
+  $node->durationunit = $duration["unit"];
+
+  $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
+
+  $form['group4']['durationunit'] = array(
+    '#type' => 'select',
+    '#title' => t('Duration unit'),
+    '#default_value' => $node->durationunit,
+    '#options' => $durationunit_list['values'],
+    '#disabled' => TRUE,
+  );
+
+  $form['group4']['duration'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Duration'),
+    '#size' => 20,
+    '#default_value' => $node->duration,
+    '#disabled' => TRUE,
+  );
+
+  $form['group5'] = array(
+    '#type' => 'markup',
+    '#theme' => 'storm_form_group',
+    '#weight' => -45,
+  );
+
+  $pricemode_list = stormattribute_attributes_bydomain('Price mode');
+  $form['group5']['pricemode'] = array(
+    '#type' => 'select',
+    '#title' => t('Price mode'),
+    '#default_value' => $node->pricemode,
+    '#options' => $pricemode_list['values'],
+  );
+
+  $form['group5']['price'] = array(
+    '#title' => t('Price'),
+    '#type' => 'textfield',
+    '#size' => 15,
+    '#default_value' => $node->price,
+  );
+
+  $currency_list = stormattribute_attributes_bydomain('Currency');
+  $form['group5']['currency'] = array(
+    '#type' => 'select',
+    '#title' => t('Price currency'),
+    '#default_value' => $node->currency,
+    '#options' => $currency_list['values'],
+  );
+// You must execute this two sql commands
+// ALTER TABLE stormbudget ADD person_organization INT;
+// ALTER TABLE stormbudget ADD person INT;
+
+  $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
+              ON so.nid=n.nid WHERE n.status=1 AND (so.isactive=1 OR n.nid=%d) AND n.type='stormorganization' ORDER BY n.title";
+
+  $s_org = stormorganization_access_sql($s_org);
+  $s_org = db_rewrite_sql($s_org);
+  $r = db_query($s_org, $node->organization_nid);
+  $organizations = array();
+  while ($organization = db_fetch_object($r)) {
+    $organizations[$organization->nid] = $organization->title;
+    if (!$node->organization_nid) $node->organization_nid = $organization->nid;
+    if (!$node->person_organization_nid) $node->person_organization_nid = $organization->nid;
+  }
+
+
+  $form['group6']['person_organization_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person organization'),
+    '#default_value' => $node->person_organization_nid,
+    '#options' => $organizations,
+    '#required' => true,
+    '#attributes' => array('onchange' => "stormperson_organization_people(this, 'edit-person-nid', true, '-')"),
+  );
+
+  $s = "SELECT n.nid, n.title FROM {stormperson} spe INNER JOIN {node} n 
+              ON spe.vid=n.vid WHERE n.status=1 AND spe.organization_nid=%d AND n.type='stormperson' ORDER BY n.title";
+
+  $s = stormperson_access_sql($s);
+  $s = db_rewrite_sql($s);
+  $r = db_query($s, $node->person_organization_nid);
+  $people = array();
+  while ($person = db_fetch_object($r)) {
+    $people[$person->nid] = $person->title;
+  }
+  $people = array(0 => '-') + $people;
+
+  $form['group6']['person_nid'] = array(
+    '#type' => 'select',
+    '#title' => t('Person'),
+    '#default_value' => $node->person_nid,
+    '#options' => $people,
+    '#required' => true,
+    '#process' => array('storm_dependent_select_process'),
+  );
+
+  if ($type->has_body) {
+    $form['body_filter']['#weight'] = -44;
+    $form['body_filter']['body'] = array(
+      '#type' => 'textarea',
+      '#title' => check_plain($type->body_label),
+      '#default_value' => $node->body,
+      '#rows' => 3,
+      '#required' => ($type->min_word_count > 0),
+    );
+    $form['body_filter']['format'] = filter_form($node->format);
+  }
+
+  $form['stepno_old'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $node->stepno_old,
+  );
+
+  $form['title_old'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $node->title_old,
+  );
+
+  return $form;
+}
+
+
+function stormbudget_form_alter(&$form, $form_state, $form_id) {
+  if (module_exists('date_api') && module_exists('date_popup')) {
+    if ('stormbudget_node_form' == $form_id) {
+	$node = $form['#node'];
+	$form['group4']['datebegin'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date begin'),
+	  '#date_format' =>  'Y-m-d',
+	  '#default_value' => date('Y-m-d',$node->datebegin),
+	);
+
+	$form['group4']['dateend'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date end'),
+	  '#date_format' =>  'Y-m-d',
+	  '#default_value' => date('Y-m-d',$node->dateend),
+	);
+    }
+  }
+}
+
+
+
+function stormbudget_insert($node) {
+  _stormbudget_beforesave($node);
+  db_query("INSERT INTO {stormbudget}
+    (vid, nid, stepno, budgetitemcategory, budgetitemstatus, budgetitempriority,
+    organization_nid, organization_title,
+    project_nid, project_title, parent_nid, weight,
+    datebegin, dateend, durationunit, duration, pricemode, price, currency, person_organization_nid, person_nid)
+    VALUES
+    (%d, %d, '%s', '%s', '%s', '%s',
+    %d, '%s',
+    %d, '%s', %d, %d, %d, %d, '%s', %f, '%s', %f, '%s', %d, %d)",
+    $node->vid, $node->nid, $node->stepno, $node->budgetitemcategory, $node->budgetitemstatus, $node->budgetitempriority,
+    $node->organization_nid, $node->organization_title, $node->project_nid, $node->project_title,
+    $node->parent_nid, $node->weight, $node->datebegin, $node->dateend, $node->durationunit, $node->duration,
+    $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid);
+}
+
+function stormbudget_update($node) {
+  // if this is a new node or we're adding a new revision,
+  if ($node->revision) {
+    stormbudget_insert($node);
+  }
+  else {
+    _stormbudget_beforesave($node);
+    db_query("UPDATE {stormbudget} SET
+      stepno='%s', budgetitemcategory='%s', budgetitemstatus='%s', budgetitempriority='%s',
+      organization_nid=%d, organization_title='%s',
+      project_nid=%d, project_title='%s',
+      parent_nid=%d, weight=%d, datebegin=%d, dateend=%d, durationunit='%s', duration=%f,
+      pricemode='%s', price=%f, currency='%s' , person_organization_nid = %d, person_nid=%d
+      WHERE vid = %d",
+      $node->stepno, $node->budgetitemcategory, $node->budgetitemstatus, $node->budgetitempriority,
+      $node->organization_nid, $node->organization_title,
+      $node->project_nid, $node->project_title,
+      $node->parent_nid,
+      $node->weight, $node->datebegin, $node->dateend, $node->durationunit, $node->duration, 
+      $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid, $node->vid);
+    if (($node->title != $node->title_old) || ($node->stepno != $node->stepno_old)) {
+      module_invoke_all('stormbudget_change', $node->nid, $node->stepno, $node->title);
+    }
+  }
+}
+
+function _stormbudget_beforesave(&$node) {
+  $s = "SELECT n.title FROM {node} n INNER JOIN {stormorganization} o ON n.nid=o.nid
+        WHERE type='stormorganization' AND n.nid=%d";
+  $r = db_query($s, $node->organization_nid);
+  $o = db_fetch_object($r);
+  $node->organization_title = $o->title;
+
+  $s = "SELECT n.title, p.organization_title FROM {node} n INNER JOIN {stormproject} p ON n.nid=p.nid
+        WHERE type='stormproject' AND n.nid=%d";
+  $r = db_query($s, $node->project_nid);
+  $p = db_fetch_object($r);
+  $node->project_title = $p->title;
+
+  if (is_array($node->datebegin)){
+      $node->datebegin = _storm_date_to_gsmtimestamp($node->datebegin);
+  }
+  else {
+      $node->datebegin = strtotime($node->datebegin);
+  }
+ 
+  if (is_array($node->dateend)){
+      $node->dateend = _storm_date_to_gmtimestamp($node->dateend);
+  }
+  else {
+      $node->dateend = strtotime($node->dateend);
+  }
+}
+
+function stormbudget_nodeapi(&$node, $op, $teaser, $page) {
+  switch ($op) {
+    case 'prepare':
+      if(!$node->nid) {
+        $node->iscustomer = 1;
+        $node->isactive = 1;
+
+        $budgetitemcategory_list = stormattribute_attributes_bydomain('Budget item category');
+        $node->budgetitemcategory = $budgetitemcategory_list['default'];
+
+        $budgetitemstatus_list = stormattribute_attributes_bydomain('Budget item status');
+        $node->budgetitemstatus = $budgetitemstatus_list['default'];
+
+        $budgetitempriority_list = stormattribute_attributes_bydomain('Budget item priority');
+        $node->budgetitempriority = $budgetitempriority_list['default'];
+
+        $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
+        $node->durationunit = $durationunit_list['default'];
+
+        $pricemode_list = stormattribute_attributes_bydomain('Price mode');
+        $node->pricemode = $pricemode_list['default'];
+
+        $currency_list = stormattribute_attributes_bydomain('Currency');
+        $node->currency = $pricemode_list['currency'];
+      }
+      break;
+    case 'delete revision':
+      // Notice that we're matching a single revision based on the node's vid.
+      db_query('DELETE FROM {stormbudget} WHERE vid = %d', $node->vid);
+      break;
+  }
+}
+
+function stormbudget_delete($node) {
+  // Notice that we're matching all revision, by using the node's nid.
+  db_query('DELETE FROM {stormbudget} WHERE nid = %d', $node->nid);
+}
+
+function stormbudget_load($node) {
+  $additions = db_fetch_object(db_query('SELECT * FROM {stormbudget} WHERE vid = %d', $node->vid));
+  $additions->stepno_old = $node->stepno;
+  $additions->title_old = $node->title;
+  return $additions;
+}
+
+function stormbudget_validate(&$node) {
+  if (($node->nid == $node->parent_nid) && $node->parent_nid) {
+    form_set_error('parent_nid', t('Impossible to assign itself as parent.'));
+  }
+}
+
+function stormbudget_view($node, $teaser = FALSE, $page = FALSE) {
+  $breadcrumb = array();
+  $breadcrumb[] = l(t('Storm'), 'storm');
+  $breadcrumb[] = l(t('Budget'), 'storm/budget');
+  drupal_set_breadcrumb($breadcrumb);
+
+  return theme('stormbudget_view', $node, $teaser, $page);
+}
+
+function _stormbudget_budgetitems_access($node=NULL) {
+  if ($node == NULL) return FALSE;
+  if ($node->type == 'stormproject' && user_access('Storm budget: access')) return TRUE;
+  return FALSE;
+}
+
+function _stormbudget_get_tree($project_nid, $parent_nid = 0, $depth = -1, $max_depth = NULL, $where = NULL, $args = array()) {
+  static $children, $parents, $budgetitems;
+
+  $depth++;
+  // We cache trees, so it's not CPU-intensive to call get_tree() on a term
+  // and its children, too.
+  if (!isset($children[$project_nid])) {
+    $children[$project_nid] = array();
+
+    $s = "SELECT n.title, sta.* FROM {node} AS n INNER JOIN {stormbudget} AS sta
+    ON n.vid=sta.vid WHERE n.status=1 AND n.type='stormbudget' AND sta.project_nid=%d
+    ORDER BY sta.weight";
+    $s = stormbudget_access_sql($s, $where);
+    $s = db_rewrite_sql($s);
+    $args = array($project_nid) + $args;
+    $r = db_query($s, $args);
+    while ($budgetitem = db_fetch_object($r)) {
+      $children[$project_nid][$budgetitem->parent_nid][] = $budgetitem->nid;
+      $parents[$project_nid][$budgetitem->nid][] = $budgetitem->parent_nid;
+      $budgetitems[$project_nid][$budgetitem->nid] = $budgetitem;
+    }
+  }
+
+  $max_depth = (is_null($max_depth)) ? count($children[$project_nid]) : $max_depth;
+  if ($children[$project_nid][$parent_nid]) {
+    foreach ($children[$project_nid][$parent_nid] as $child_nid) {
+      if ($max_depth > $depth) {
+        $budgetitem = drupal_clone($budgetitems[$project_nid][$child_nid]);
+        $budgetitem->depth = $depth;
+        $budgetitem->parents = $parents[$project_nid][$child_nid];
+        $tree[] = $budgetitem;
+        if ($children[$project_nid][$child_nid]) {
+          $tree = array_merge($tree, _stormbudget_get_tree($project_nid, $child_nid, $depth, $max_depth, $where, $args));
+        }
+      }
+    }
+  }
+  return $tree ? $tree : array();
+}
+
+function _stormbudget_plain_tree($tree) {
+  $rows = array();
+  foreach ($tree as $item) {
+    $nid = $item->nid;
+    $title = $item->title;
+    if ($item->stepno) $title = $item->stepno .' '. $title;
+    if ($nid) $rows[$nid] = str_repeat('--', $item->depth) .' '. $title;
+  }
+  return $rows;
+}
+
+function stormbudget_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'stormbudget'),
+  );
+}

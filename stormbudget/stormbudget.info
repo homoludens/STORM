@@ -1,0 +1,16 @@
+; $Id: stormbudget.info,v 1.4.4.1 2009/05/06 19:09:48 magnity Exp $
+name = Storm Budget
+description = "Allows adding Budget of Storm Projects"
+dependencies[] = storm 
+dependencies[] = stormattribute
+dependencies[] = stormorganization
+dependencies[] = stormproject
+package = Storm
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-06-29
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "storm"
+datestamp = "1246278818"
+
