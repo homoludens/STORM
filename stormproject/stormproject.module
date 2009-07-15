@@ -53,6 +53,16 @@ function stormproject_access($op, $node, $account=NULL) {
 
   if (is_numeric($node)) $node = node_load($node);
 
+//   $s = "SELECT project_nid FROM {stormteammember} AS stm INNER JOIN  {stormperson} AS sper ON sper.nid = stm.person_nid WHERE sper.user_uid = %d";
+//   $r = db_query($s, $account->uid);
+//   $projects = array();
+//   $projects_nids = array();
+//   while ($projects = db_fetch_object($r)) {
+//     $projects_nids[]=$projects->project_nid;
+//   }
+//   print_r($projects_nids);
+
+
   $s = "SELECT project_nid FROM {stormteammember} AS stm INNER JOIN  {stormperson} AS sper ON sper.nid = stm.person_nid WHERE sper.user_uid = %d AND stm.project_nid = %d";
 //   $s = stormorganization_access_sql($s);
 //   $s = db_rewrite_sql($s);
@@ -103,7 +113,7 @@ function stormproject_access($op, $node, $account=NULL) {
     else if (user_access('Storm project: view of user organization') && ($account->stormorganization_nid == $node->organization_nid)) {
       return TRUE;
     }
-    else if ($projects->project_nid == $node->nid) {
+    else if ($projects->project_nid) {
       return TRUE;
     }    
   }
@@ -118,6 +128,15 @@ function stormproject_access_sql($sql, $where = array()) {
 
   global $user;
 
+//   $s = "SELECT project_nid FROM {stormteammember} AS stm INNER JOIN  {stormperson} AS sper ON sper.nid = stm.person_nid WHERE sper.user_uid = %d";
+//   $r = db_query($s, $account->uid);
+//   $projects = array();
+//   $projects_nids = array();
+//   while ($projects = db_fetch_object($r)) {
+//     $projects_nids[]=$projects->project_nid;
+//   }
+//   print_r($projects_nids);
+
   $cond = '';
   if (user_access('Storm project: view own')) {
     $cond .= 'n.uid='. $user->uid;
@@ -126,6 +145,12 @@ function stormproject_access_sql($sql, $where = array()) {
     if (!empty($cond)) $cond .= ' OR ';
     $cond .= 'spr.organization_nid='. $user->stormorganization_nid;
   }
+  
+//   if (user_access('Storm project: view of user organization')) {
+//     if (!empty($cond)) $cond .= ' OR ';
+//     $cond .= 'spr.organization_nid='. $user->uid;
+//   }
+  
   if (empty($cond)) $cond = '0=1';
   $where[] = $cond;
 
