@@ -409,48 +409,6 @@ function stormbudget_form(&$node) {
     '#options' => $budgetitempriority_list['values'],
   );
 
-  $form['group4'] = array(
-    '#type' => 'markup',
-    '#theme' => 'storm_form_group',
-    '#weight' => -47,
-  );
-
-  $form['group4']['datebegin'] = array(
-    '#type' => 'dateext',
-    '#title' => t('Date begin'),
-    '#withnull' => true,
-    '#default_value' => _storm_gmtimestamp_to_date($node->datebegin),
-  );
-
-  $form['group4']['dateend'] = array(
-    '#type' => 'dateext',
-    '#title' => t('Date end'),
-    '#withnull' => true,
-    '#default_value' => _storm_gmtimestamp_to_date($node->dateend),
-  );
-
-  $duration = _storm_get_duration($node->datebegin,$node->dateend);
-  $node->duration = $duration["time"];
-  $node->durationunit = $duration["unit"];
-
-  $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
-
-  $form['group4']['durationunit'] = array(
-    '#type' => 'select',
-    '#title' => t('Duration unit'),
-    '#default_value' => $node->durationunit,
-    '#options' => $durationunit_list['values'],
-    '#disabled' => TRUE,
-  );
-
-  $form['group4']['duration'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Duration'),
-    '#size' => 20,
-    '#default_value' => $node->duration,
-    '#disabled' => TRUE,
-  );
-
   $form['group5'] = array(
     '#type' => 'markup',
     '#theme' => 'storm_form_group',
