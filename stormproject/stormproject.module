@@ -53,7 +53,19 @@ function stormproject_access($op, $node, $account=NULL) {
 
   if (is_numeric($node)) $node = node_load($node);
 
-  if ($op == 'create') {
+  $s = "SELECT project_nid FROM {stormteammember} AS stm INNER JOIN  {stormperson} AS sper ON sper.nid = stm.person_nid WHERE sper.user_uid = %d AND stm.project_nid = %d";
+//   $s = stormorganization_access_sql($s);
+//   $s = db_rewrite_sql($s);
+  $r = db_query($s, $account->uid,$node->nid);
+  $projects = array();
+  $projects = db_fetch_object($r);
+//   while ($projects = db_fetch_object($r)) {
+//     $projects->project_nid = $projects->title;
+//   }
+//   print "project_nid: ".$projects->project_nid."\n";
+//   print "node->nid:   ".$node->nid."\n";
+//   print "user->uid:   ".$account->uid."\n";
+ if ($op == 'create') {
     return user_access('Storm project: add');
   }
 
@@ -91,6 +103,9 @@ function stormproject_access($op, $node, $account=NULL) {
     else if (user_access('Storm project: view of user organization') && ($account->stormorganization_nid == $node->organization_nid)) {
       return TRUE;
     }
+    else if ($projects->project_nid == $node->nid) {
+      return TRUE;
+    }    
   }
   return FALSE;
 }
