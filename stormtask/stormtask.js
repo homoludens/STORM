@@ -23,4 +23,3 @@ function stormtask_organization_project_tasks(_organization_select, _project_sel
   var project_select = $("#" + _project_select_id).get(0);
   stormtask_project_tasks(project_select, _task_select_id, _with_all_option, _all_text);
 };
-

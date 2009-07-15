@@ -9,11 +9,11 @@ function stormbudget_project_budgetitems(_project_select, _budgetitem_select_id,
   $.ajax({
     type: "GET",
     async: true,
-    url: Drupal.settings.storm.project_budget_url + Drupal.encodeURIComponent(project_nid),
+    url: Drupal.settings.storm.project_budgetitems_url + Drupal.encodeURIComponent(project_nid),
     dataType: "string",
     success: function (data) {
       var items = Drupal.parseJson(data);
-      storm_fill_select(budget_select, items, _with_all_option, _all_text);
+      storm_fill_select(budgetitem_select, items, _with_all_option, _all_text);
     }
   });
 };
@@ -21,6 +21,6 @@ function stormbudget_project_budgetitems(_project_select, _budgetitem_select_id,
 function stormbudget_organization_project_budgetitems(_organization_select, _project_select_id, _budget_select_id, _with_all_option, _all_text) {
   stormproject_organization_projects(_organization_select, _project_select_id, _with_all_option, _all_text);
   var project_select = $("#" + _project_select_id).get(0);
-  stormbudget_project_budgetitems((project_select, _budgetitem_select_id, _with_all_option, _all_text);
+  stormbudget_project_budgetitems(project_select, _budgetitem_select_id, _with_all_option, _all_text);
 };
 

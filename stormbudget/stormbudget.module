@@ -227,7 +227,7 @@ function stormbudget_node_info() {
   return array(
     'stormbudget' => array(
       'name' => t('Budget item'),
-      'module' => 'stormbudnget',
+      'module' => 'stormbudget',
       'description' => t("A budget item for Storm."),
       'title_label' => t("Title"),
       'body_label' => t("Description"),
@@ -317,6 +317,8 @@ function stormbudget_form(&$node) {
     '#options' => $organizations,
     '#required' => true,
     '#attributes' => array('onchange' => "stormbudget_organization_project_budgetitems(this, 'edit-project-nid', 'edit-parent-nid', true, '-')"),
+//     '#attributes' => array('onchange' => "stormtask_organization_project_tasks(this, 'edit-project-nid', 'edit-parent-nid', true, '-')"),
+
   );
 
   $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormproject} AS spr ON spr.vid=n.vid
@@ -337,6 +339,7 @@ function stormbudget_form(&$node) {
     '#process' => array('storm_dependent_select_process'),
     '#required' => true,
     '#attributes' => array('onchange' => "stormbudget_project_budgetitems(this, 'edit-parent-nid', true, '-')"),
+//     '#attributes' => array('onchange' => "stormtask_project_tasks(this, 'edit-parent-nid', true, '-')"),
   );
 
   $tree = _stormbudget_get_tree($node->project_nid);
@@ -477,8 +480,8 @@ function stormbudget_form(&$node) {
     '#options' => $currency_list['values'],
   );
 // You must execute this two sql commands
-// ALTER TABLE stormbudget ADD person_organization INT;
-// ALTER TABLE stormbudget ADD person INT;
+// ALTER TABLE stormbudget ADD person_organization_nid INT;
+// ALTER TABLE stormbudget ADD person_nid INT;
 
   $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
               ON so.nid=n.nid WHERE n.status=1 AND (so.isactive=1 OR n.nid=%d) AND n.type='stormorganization' ORDER BY n.title";
@@ -576,7 +579,7 @@ function stormbudget_form_alter(&$form, $form_state, $form_id) {
 function stormbudget_insert($node) {
   _stormbudget_beforesave($node);
   db_query("INSERT INTO {stormbudget}
-    (vid, nid, stepno, budgetitemcategory, budgetitemstatus, budgetitempriority,
+    (vid, nid, stepno, budgetcategory, budgetstatus, budgetpriority,
     organization_nid, organization_title,
     project_nid, project_title, parent_nid, weight,
     datebegin, dateend, durationunit, duration, pricemode, price, currency, person_organization_nid, person_nid)
@@ -598,7 +601,7 @@ function stormbudget_update($node) {
   else {
     _stormbudget_beforesave($node);
     db_query("UPDATE {stormbudget} SET
-      stepno='%s', budgetitemcategory='%s', budgetitemstatus='%s', budgetitempriority='%s',
+      stepno='%s', budgetcategory='%s', budgetstatus='%s', budgetpriority='%s',
       organization_nid=%d, organization_title='%s',
       project_nid=%d, project_title='%s',
       parent_nid=%d, weight=%d, datebegin=%d, dateend=%d, durationunit='%s', duration=%f,

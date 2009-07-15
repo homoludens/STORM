@@ -447,7 +447,7 @@ function stormbudget_list() {
 
   $itemsperpage = $_SESSION['stormbudget_list_filter']['itemsperpage'];
 
-  $s = stormbudgetitem_access_sql($s, $where);
+  $s = stormbudget_access_sql($s, $where);
   $s = db_rewrite_sql($s);
 
   $tablesort = tablesort_sql($header);
