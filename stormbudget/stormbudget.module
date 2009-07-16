@@ -262,9 +262,6 @@ function stormbudget_form(&$node) {
   drupal_set_breadcrumb($breadcrumb);
 
   if (arg(1)=='add') {
-    $node->datebegin = time();
-    $node->dateend = time();
-
     if (array_key_exists('organization_nid', $_GET) && !$node->organization_nid) {
       $node->organization_nid = $_GET['organization_nid'];
     }
@@ -469,14 +466,14 @@ function stormbudget_insert($node) {
     (vid, nid, stepno, budgetcategory, budgetstatus, budgetpriority,
     organization_nid, organization_title,
     project_nid, project_title, parent_nid, weight,
-    datebegin, dateend, durationunit, duration, pricemode, price, currency, person_organization_nid, person_nid)
+    pricemode, price, currency, person_organization_nid, person_nid)
     VALUES
     (%d, %d, '%s', '%s', '%s', '%s',
     %d, '%s',
     %d, '%s', %d, %d, %d, %d, '%s', %f, '%s', %f, '%s', %d, %d)",
     $node->vid, $node->nid, $node->stepno, $node->budgetitemcategory, $node->budgetitemstatus, $node->budgetitempriority,
     $node->organization_nid, $node->organization_title, $node->project_nid, $node->project_title,
-    $node->parent_nid, $node->weight, $node->datebegin, $node->dateend, $node->durationunit, $node->duration,
+    $node->parent_nid, $node->weight,
     $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid);
 }
 
@@ -491,14 +488,14 @@ function stormbudget_update($node) {
       stepno='%s', budgetcategory='%s', budgetstatus='%s', budgetpriority='%s',
       organization_nid=%d, organization_title='%s',
       project_nid=%d, project_title='%s',
-      parent_nid=%d, weight=%d, datebegin=%d, dateend=%d, durationunit='%s', duration=%f,
+      parent_nid=%d, weight=%d,
       pricemode='%s', price=%f, currency='%s' , person_organization_nid = %d, person_nid=%d
       WHERE vid = %d",
       $node->stepno, $node->budgetitemcategory, $node->budgetitemstatus, $node->budgetitempriority,
       $node->organization_nid, $node->organization_title,
       $node->project_nid, $node->project_title,
       $node->parent_nid,
-      $node->weight, $node->datebegin, $node->dateend, $node->durationunit, $node->duration, 
+      $node->weight, 
       $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid, $node->vid);
     if (($node->title != $node->title_old) || ($node->stepno != $node->stepno_old)) {
       module_invoke_all('stormbudget_change', $node->nid, $node->stepno, $node->title);
@@ -519,19 +516,6 @@ function _stormbudget_beforesave(&$node) {
   $p = db_fetch_object($r);
   $node->project_title = $p->title;
 
-  if (is_array($node->datebegin)){
-      $node->datebegin = _storm_date_to_gsmtimestamp($node->datebegin);
-  }
-  else {
-      $node->datebegin = strtotime($node->datebegin);
-  }
- 
-  if (is_array($node->dateend)){
-      $node->dateend = _storm_date_to_gmtimestamp($node->dateend);
-  }
-  else {
-      $node->dateend = strtotime($node->dateend);
-  }
 }
 
 function stormbudget_nodeapi(&$node, $op, $teaser, $page) {
@@ -549,9 +533,6 @@ function stormbudget_nodeapi(&$node, $op, $teaser, $page) {
 
         $budgetitempriority_list = stormattribute_attributes_bydomain('Budget item priority');
         $node->budgetitempriority = $budgetitempriority_list['default'];
-
-        $durationunit_list = stormattribute_attributes_bydomain('Duration unit');
-        $node->durationunit = $durationunit_list['default'];
 
         $pricemode_list = stormattribute_attributes_bydomain('Price mode');
         $node->pricemode = $pricemode_list['default'];

@@ -28,11 +28,11 @@ function theme_stormbudget_budgetitems($form) {
       drupal_render($form['budgetitems'][$key]['budgetitem_category_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_status_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_priority_'. $key]),
-      array(
-        'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_duration_'. $key])) .' '. substr($durationunit, 0, 1), 
-        'style' => 'text-align: right'),
-      drupal_render($form['budgetitems'][$key]['budgetitem_parent-nid_'. $key]) . drupal_render($form['budgetitems'][$key]['budgetitem_nid_'. $key]),
-      drupal_render($form['budgetitems'][$key]['budgetitem_weight_'. $key]),
+// /*      array(
+//         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_duration_'. $key])) .' '. substr($durationunit, 0, 1), 
+//         'style' => 'text-align: right'),*/
+//       drupal_render($form['budgetitems'][$key]['budgetitem_parent-nid_'. $key]) . drupal_render($form['budgetitems'][$key]['budgetitem_nid_'. $key]),
+//       drupal_render($form['budgetitems'][$key]['budgetitem_weight_'. $key]),
       array(
         'data' => drupal_render($form['budgetitems'][$key]['budgetitem_operations_'. $key]),
         'class' => 'storm_list_operations',
@@ -61,10 +61,10 @@ function theme_stormbudget_list($header, $budgetitems) {
       l($budgetitem->organization_title, 'node/'. $budgetitem->organization_nid),
       l($budgetitem->project_title, 'node/'. $budgetitem->project_nid),
       l($budgetitem->title, 'node/'. $budgetitem->nid) . theme('mark', node_mark($budgetitem->nid, $budgetitem->changed)),
-      storm_icon('category_'. $budgetitem->budgetitemcategory, $budgetitem->budgetitemcategory),
-      storm_icon('status_'. $budgetitem->budgetitemstatus, $budgetitem->budgetitemstatus),
-      storm_icon('priority_'. $budgetitem->budgetitempriority, $budgetitem->budgetitempriority),
-      l($node_person->fullname, 'node/'. $budgetitem->person_nid),
+      storm_icon('category_'. $budgetitem->budgetcategory, $budgetitem->budgetcategory),
+      storm_icon('status_'. $budgetitem->budgetstatus, $budgetitem->budgetstatus),
+      storm_icon('priority_'. $budgetitem->budgetpriority, $budgetitem->budgetpriority),
+//       l($node_person->fullname, 'node/'. $budgetitem->person_nid),
 //       l($budgetitem->person_organization_nid, 'node/'. $budgetitem->person_organization_nid),
       array(
         'data' => storm_icon_edit_node($n, $_GET) .'&nbsp;'. storm_icon_delete_node($n, $_GET),

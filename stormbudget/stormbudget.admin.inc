@@ -35,16 +35,12 @@ function stormbudget_budgetitems($project) {
     array(
       'data' => t('Priority'),
     ),
-    array(
-      'data' => t('Duration'),
-      'style' => 'text-align: center;',
-    ),
-    array(
-      'data' => t('Parent'),
-    ),
-    array(
-      'data' => t('Weight'),
-    ),
+//     array(
+//       'data' => t('Parent'),
+//     ),
+//     array(
+//       'data' => t('Weight'),
+//     ),
     array(
       'data' => storm_icon_add_node($i, $params),
       'class' => 'storm_list_operations',
@@ -119,41 +115,33 @@ function stormbudget_budgetitems_form($form_id, $header, $budgetitems, $project)
     );
 
     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_category_'. $budgetitem->nid] = array(
-      '#value' => storm_icon('category_'. $budgetitem->budgetitemcategory, $budgetitem->budgetitemcategory),
+      '#value' => storm_icon('category_'. $budgetitem->budgetcategory, $budgetitem->budgetcategory),
     );
 
     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_status_'. $budgetitem->nid] = array(
-      '#value' => storm_icon('status_'. $budgetitem->budgetitemstatus, $budgetitem->budgetitemstatus),
+      '#value' => storm_icon('status_'. $budgetitem->budgetstatus, $budgetitem->budgetstatus),
     );
 
     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_priority_'. $budgetitem->nid] = array(
-      '#value' => storm_icon('priority_'. $budgetitem->budgetitempriority, $budgetitem->budgetitempriority),
+      '#value' => storm_icon('priority_'. $budgetitem->budgetpriority, $budgetitem->budgetpriority),
     );
 
-    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_duration_'. $budgetitem->nid] = array(
-      '#value' => $budgetitem->duration,
-    );
 
-    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_durationunit_'. $budgetitem->nid] = array(
-      '#type' => 'hidden',
-      '#value' => $budgetitem->durationunit,
-    );
+// /*    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_parent-nid_'. $budgetitem->nid] = array(
+//       '#type' => 'hidden',
+//       '#options' => array(0 => '-') + $parent_budgetitems,
+//       '#default_value' => $budgetitem->parent_nid,
+//     );*/
 
-    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_parent-nid_'. $budgetitem->nid] = array(
-      '#type' => 'select',
-      '#options' => array(0 => '-') + $parent_budgetitems,
-      '#default_value' => $budgetitem->parent_nid,
-    );
+//     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_nid_'. $budgetitem->nid] = array(
+//       '#type' => 'hidden',
+//       '#default_value' => $budgetitem->nid,
+//     );
 
-    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_nid_'. $budgetitem->nid] = array(
-      '#type' => 'hidden',
-      '#default_value' => $budgetitem->nid,
-    );
-
-    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_weight_'. $budgetitem->nid] = array(
-      '#type' => 'weight',
-      '#default_value' => $budgetitem->weight,
-    );
+//     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_weight_'. $budgetitem->nid] = array(
+//       '#type' => 'hidden',
+//       '#default_value' => $budgetitem->weight,
+//     );
 
     $v = storm_icon_edit_node($n, $params);
     $v .= '&nbsp;'. storm_icon_delete_node($n, $params);
@@ -326,24 +314,21 @@ function stormbudget_list() {
     ),
     array(
       'data' => t('Category'),
-      'field' => 'sta.budgetitemcategory',
+      'field' => 'sta.budgetcategory',
     ),
     array(
       'data' => t('Status'),
-      'field' => 'sta.budgetitemstatus',
+      'field' => 'sta.budgetstatus',
     ),
     array(
       'data' => t('Priority'),
-      'field' => 'sta.budgetitempriority',
-    ),
-    array(
-      'data' => t('Person'),
-      'field' => 'sta.person_nid',
+      'field' => 'sta.budgetpriority',
     ),
 //     array(
-//       'data' => t('Person Organization'),
-//       'field' => 'sta.person_organization_nid',
-//     ),
+//       'data' => t('Price'),
+//       'field' => 'sta.price',
+//     ),    
+
     array(
       'data' => storm_icon_add_node($i, $_GET),
       'class' => 'storm_list_operations',
@@ -361,16 +346,6 @@ function stormbudget_list() {
   if ($_SESSION['stormbudgetitem_list_filter']['project_nid']) {
     $where[] = 'sta.project_nid=%d';
     $args[] = $_SESSION['stormbudget_list_filter']['project_nid'];
-  }
-
-  if ($_SESSION['stormbudgetitem_list_filter']['person_organization_nid']) {
-    $where[] = 'sta.person_organization_nid=%d';
-    $args[] = $_SESSION['stormbudget_list_filter']['person_organization_nid'];
-  }
-
-  if ($_SESSION['stormbudget_list_filter']['person_nid']) {
-    $where[] = 'sta.person_nid=%d';
-    $args[] = $_SESSION['stormbudget_list_filter']['person_nid'];
   }
 
   if ($_SESSION['stormbudget_list_filter']['budgetitemcategory'] && $_SESSION['stormbudget_list_filter']['budgetitemcategory'] != '-') {
@@ -398,50 +373,6 @@ function stormbudget_list() {
     $where[] = "sta.budgetitempriority IN ('". implode("','",$v) ."')";
     foreach ($priority as $key => $value) {
       $args[] = $value;
-    }
-  }
-
-  $datebeginfrom = $_SESSION['stormbudget_list_filter']['datebeginfrom'];
-  if ($datebeginfrom) {
-    $datebeginfrom['hour'] = 0;
-    $datebeginfrom['minute'] = 0;
-    $t = _storm_datetime_to_gmtimestamp($datebeginfrom);
-    if ($datebeginfrom['year']>0 && $t>=0) {
-      $where[] = 'sta.datebegin>=%d';
-      $args[] = $t;
-    }
-  }
-
-  $datebeginto = $_SESSION['stormbudget_list_filter']['datebeginto'];
-  if ($datebeginto) {
-    $datebeginto['hour'] = 23;
-    $datebeginto['minute'] = 59;
-    $t = _storm_datetime_to_gmtimestamp($datebeginto);
-    if ($datebeginto['year']>0 && $t>=0) {
-      $where[] = 'sta.datebegin<=%d';
-      $args[] = $t;
-    }
-  }
-
-  $dateendfrom = $_SESSION['stormbudget_list_filter']['dateendfrom'];
-  if ($dateendfrom) {
-    $dateendfrom['hour'] = 0;
-    $dateendfrom['minute'] = 0;
-    $t = _storm_datetime_to_gmtimestamp($dateendfrom);
-    if ($dateendfrom['year']>0 && $t>=0) {
-      $where[] = 'sta.dateend>=%d';
-      $args[] = $t;
-    }
-  }
-
-  $dateendto = $_SESSION['stormbudget_list_filter']['dateendto'];
-  if ($dateendto) {
-    $dateendto['hour'] = 23;
-    $dateendto['minute'] = 59;
-    $t = _storm_datetime_to_gmtimestamp($dateendto);
-    if ($dateendto['year']>0 && $t>=0) {
-      $where[] = 'sta.dateend<=%d';
-      $args[] = $t;
     }
   }
 
@@ -488,15 +419,7 @@ function stormbudget_list_filter() {
   $organization_nid = $_SESSION['stormbudget_list_filter']['organization_nid'];
   $project_nid = $_SESSION['stormbudget_list_filter']['project_nid'];
 
-  $person_organization_nid = $_SESSION['stormbudget_list_filter']['person_organization_nid'];
-  $person_nid = $_SESSION['stormbudget_list_filter']['person_nid'];
-
-  $datebeginfrom = $_SESSION['stormbudget_list_filter']['datebeginfrom'];
-  $datebeginto = $_SESSION['stormbudget_list_filter']['datebeginto'];
-  $dateendfrom = $_SESSION['stormbudget_list_filter']['dateendfrom'];
-  $dateendto = $_SESSION['stormbudget_list_filter']['dateendto'];
-
-  $itemsperpage = $_SESSION['stormbudget_list_filter']['itemsperpage'];
+ $itemsperpage = $_SESSION['stormbudget_list_filter']['itemsperpage'];
   if (!$itemsperpage) {
     $itemsperpage = 10;
     $_SESSION['stormbudget_list_filter']['itemsperpage'] = $itemsperpage;
@@ -578,76 +501,6 @@ function stormbudget_list_filter() {
     '#options' => $priority_list['values'],
   );
 
-  $form['filter']['group3'] = array(
-    '#type' => 'markup',
-    '#theme' => 'storm_form_group',
-  );
-
-  $form['filter']['group3']['datebeginfrom'] = array(
-    '#type' => 'dateext',
-    '#withnull' => 'true',
-    '#title' => t('Date begin from'),
-    '#default_value' => $datebeginfrom,
-  );
-
-  $form['filter']['group3']['datebeginto'] = array(
-    '#type' => 'dateext',
-    '#withnull' => 'true',
-    '#title' => t('Date begin to'),
-    '#default_value' => $datebeginto,
-  );
-
-  $form['filter']['group4'] = array(
-    '#type' => 'markup',
-    '#theme' => 'storm_form_group',
-  );
-
-  $form['filter']['group4']['dateendfrom'] = array(
-    '#type' => 'dateext',
-    '#withnull' => 'true',
-    '#title' => t('Date end from'),
-    '#default_value' => $dateendfrom,
-  );
-
-  $form['filter']['group4']['dateendto'] = array(
-    '#type' => 'dateext',
-    '#withnull' => 'true',
-    '#title' => t('Date end to'),
-    '#default_value' => $dateendto,
-  );
-
-  $form['filter']['group5'] = array(
-    '#type' => 'markup',
-    '#theme' => 'storm_form_group',
-  );
-
-  $form['filter']['group5']['person_organization_nid'] = array(
-    '#type' => 'select',
-    '#title' => t('Person organization'),
-    '#default_value' => $person_organization_nid,
-    '#options' => $organizations,
-//     '#attributes' => array('onchange' => "stormproject_organization_projects(this, 'edit-project-nid', true, 'All')"),
-  );
-
-
-  $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormperson} AS sor ON sor.vid=n.vid
-  WHERE n.status=1 AND n.type='stormperson' ORDER BY n.title";
-  $s = stormorganization_access_sql($s);
-  $s = db_rewrite_sql($s);
-  $r = db_query($s);
-  $persons = array();
-  while ($person = db_fetch_object($r)) {
-    $persons[$person->nid] = $person->title;
-  }
-  $persons = array(0 => t('All')) + $persons;
-
-  $form['filter']['group5']['person_nid'] = array(
-    '#type' => 'select',
-    '#title' => t('Person'),
-    '#default_value' => $person_nid,
-    '#options' => $persons,
-  );
-
   $form['filter']['group6'] = array(
     '#type' => 'markup',
     '#theme' => 'storm_form_group',
@@ -683,14 +536,7 @@ function stormbudget_list_filter_filter($form, &$form_state) {
   $_SESSION['stormbudget_list_filter']['budgetitemcategory'] = $form_state['values']['budgetitemcategory'];
   $_SESSION['stormbudget_list_filter']['budgetitemstatus'] = $form_state['values']['budgetitemstatus'];
   $_SESSION['stormbudget_list_filter']['budgetitempriority'] = $form_state['values']['budgetitempriority'];
-  $_SESSION['stormbudget_list_filter']['datebeginfrom'] = $form_state['values']['datebeginfrom'];
-  $_SESSION['stormbudget_list_filter']['datebeginto'] = $form_state['values']['datebeginto'];
-  $_SESSION['stormbudget_list_filter']['dateendfrom'] = $form_state['values']['dateendfrom'];
-  $_SESSION['stormbudget_list_filter']['dateendto'] = $form_state['values']['dateendto'];
   $_SESSION['stormbudget_list_filter']['itemsperpage'] = $form_state['values']['itemsperpage'];
-
-  $_SESSION['stormbudget_list_filter']['person_nid'] = $form_state['values']['person_nid'];
-  $_SESSION['stormbudget_list_filter']['person_organization_nid'] = $form_state['values']['person_organization_nid'];
 }
 
 function stormbudget_list_filter_reset($form, &$form_state) {
