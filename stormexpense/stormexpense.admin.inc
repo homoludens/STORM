@@ -15,8 +15,9 @@ function stormexpense_list() {
       $_SESSION['stormexpense_list_filter']['organization_nid'] = $_GET['organization_nid'];
     }
     unset($_SESSION['stormexpense_list_filter']['project_nid']);
-    unset($_SESSION['stormexpense_list_filter']['task_nid']);
-    unset($_SESSION['stormexpense_list_filter']['ticket_nid']);
+    unset($_SESSION['stormexpense_list_filter']['budget_item']);
+//     unset($_SESSION['stormexpense_list_filter']['task_nid']);
+//     unset($_SESSION['stormexpense_list_filter']['ticket_nid']);
   }
 
   if (array_key_exists('project_nid', $_GET)) {
@@ -26,31 +27,46 @@ function stormexpense_list() {
     $p = node_load($_GET['project_nid']);
     $_SESSION['stormexpense_list_filter']['organization_nid'] = $p->organization_nid;
 
-    unset($_SESSION['stormexpense_list_filter']['task_nid']);
-    unset($_SESSION['stormexpense_list_filter']['ticket_nid']);
+    unset($_SESSION['stormexpense_list_filter']['budget_item']);
+
+//     unset($_SESSION['stormexpense_list_filter']['task_nid']);
+//     unset($_SESSION['stormexpense_list_filter']['ticket_nid']);
   }
 
-  if (array_key_exists('task_nid', $_GET)) {
-    if ($_SESSION['stormexpense_list_filter']['task_nid'] != $_GET['task_nid']) {
-      $_SESSION['stormexpense_list_filter']['task_nid'] = $_GET['task_nid'];
+
+  if (array_key_exists('budget_item', $_GET)) {
+    if ($_SESSION['stormexpense_list_filter']['budget_item'] != $_GET['budget_item']) {
+      $_SESSION['stormexpense_list_filter']['budget_item'] = $_GET['budget_item'];
     }
 
-    $t = node_load($_GET['task_nid']);
-    $_SESSION['stormexpense_list_filter']['organization_nid'] = $t->organization_nid;
-    $_SESSION['stormexpense_list_filter']['project_nid'] = $t->project_nid;
-    unset($_SESSION['stormexpense_list_filter']['ticket_nid']);
-  }
-
-  if (array_key_exists('ticket_nid', $_GET)) {
-    if ($_SESSION['stormexpense_list_filter']['ticket_nid'] != $_GET['ticket_nid']) {
-      $_SESSION['stormexpense_list_filter']['ticket_nid'] = $_GET['ticket_nid'];
-    }
-
-    $ti = node_load($_GET['ticket_nid']);
+    $ti = node_load($_GET['budget_item']);
     $_SESSION['stormexpense_list_filter']['organization_nid'] = $ti->organization_nid;
     $_SESSION['stormexpense_list_filter']['project_nid'] = $ti->project_nid;
-    $_SESSION['stormexpense_list_filter']['task_nid'] = $ti->task_nid;
+    $_SESSION['stormexpense_list_filter']['budget_item'] = $ti->budget_item;
   }
+
+
+//   if (array_key_exists('task_nid', $_GET)) {
+//     if ($_SESSION['stormexpense_list_filter']['task_nid'] != $_GET['task_nid']) {
+//       $_SESSION['stormexpense_list_filter']['task_nid'] = $_GET['task_nid'];
+//     }
+// 
+//     $t = node_load($_GET['task_nid']);
+//     $_SESSION['stormexpense_list_filter']['organization_nid'] = $t->organization_nid;
+//     $_SESSION['stormexpense_list_filter']['project_nid'] = $t->project_nid;
+//     unset($_SESSION['stormexpense_list_filter']['ticket_nid']);
+//   }
+// 
+//   if (array_key_exists('ticket_nid', $_GET)) {
+//     if ($_SESSION['stormexpense_list_filter']['ticket_nid'] != $_GET['ticket_nid']) {
+//       $_SESSION['stormexpense_list_filter']['ticket_nid'] = $_GET['ticket_nid'];
+//     }
+// 
+//     $ti = node_load($_GET['ticket_nid']);
+//     $_SESSION['stormexpense_list_filter']['organization_nid'] = $ti->organization_nid;
+//     $_SESSION['stormexpense_list_filter']['project_nid'] = $ti->project_nid;
+//     $_SESSION['stormexpense_list_filter']['task_nid'] = $ti->task_nid;
+//   }
 
   $o = drupal_get_form('stormexpense_list_filter');
 
@@ -106,14 +122,20 @@ function stormexpense_list() {
     $where[] = 'sex.project_nid=%d';
     $args[] = $_SESSION['stormexpense_list_filter']['project_nid'];
   }
-  if ($_SESSION['stormexpense_list_filter']['task_nid']) {
+  if ($_SESSION['stormexpense_list_filter']['budget_item']) {
     $where[] = 'sex.task_nid=%d';
-    $args[] = $_SESSION['stormexpense_list_filter']['task_nid'];
+    $args[] = $_SESSION['stormexpense_list_filter']['budget_item'];
   }
-  if ($_SESSION['stormexpense_list_filter']['ticket_nid']) {
-    $where[] = 'sex.ticket_nid=%d';
-    $args[] = $_SESSION['stormexpense_list_filter']['ticket_nid'];
-  }
+
+//   if ($_SESSION['stormexpense_list_filter']['task_nid']) {
+//     $where[] = 'sex.task_nid=%d';
+//     $args[] = $_SESSION['stormexpense_list_filter']['task_nid'];
+//   }
+//   if ($_SESSION['stormexpense_list_filter']['ticket_nid']) {
+//     $where[] = 'sex.ticket_nid=%d';
+//     $args[] = $_SESSION['stormexpense_list_filter']['ticket_nid'];
+//   }
+
   if ($_SESSION['stormexpense_list_filter']['datefrom']) {
     $datefrom = $_SESSION['stormexpense_list_filter']['datefrom'];
     $datefrom['hour'] = 0;
@@ -173,8 +195,9 @@ function stormexpense_list() {
 function stormexpense_list_filter() {
   $organization_nid = $_SESSION['stormexpense_list_filter']['organization_nid'];
   $project_nid = $_SESSION['stormexpense_list_filter']['project_nid'];
-  $task_nid = $_SESSION['stormexpense_list_filter']['task_nid'];
-  $ticket_nid = $_SESSION['stormexpense_list_filter']['ticket_nid'];
+  $budget_item_nid = $_SESSION['stormexpense_list_filter']['budget_item'];
+//   $task_nid = $_SESSION['stormexpense_list_filter']['task_nid'];
+//   $ticket_nid = $_SESSION['stormexpense_list_filter']['ticket_nid'];
   $itemsperpage = $_SESSION['stormexpense_list_filter']['itemsperpage'];
   $title = $_SESSION['stormexpense_list_filter']['title'];
   $provider_title = $_SESSION['stormexpense_list_filter']['provider_title'];
@@ -247,38 +270,51 @@ function stormexpense_list_filter() {
     '#default_value' => $project_nid,
     '#options' => $projects,
     '#process' => array('storm_dependent_select_process'),
-    '#attributes' => array('onchange' => "stormticket_project_task_tickets(this, 'edit-organization-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
+//     '#attributes' => array('onchange' => "stormticket_project_task_tickets(this, 'edit-organization-nid', 'edit-task-nid', 'edit-ticket-nid', true, 'All')"),
+    '#attributes' => array('onchange' => "stormbudget_project_budgetitems(this, 'edit-budget-tree', true, '-')"),
   );
 
-  $tree = _stormtask_get_tree($project_nid);
-  $tasks = _stormtask_plain_tree($tree);
-  $tasks = array(0 => t('All')) + $tasks;
-  $form['filter']['group1']['task_nid'] = array(
+  $tree = _stormbudget_get_tree($project_nid);
+  $budget_tree = _stormbudget_plain_tree($tree);
+  $budget_tree = array(0 => t('All')) + $budget_tree;
+  $form['filter']['group1']['budget_item'] = array(
     '#type' => 'select',
-    '#title' => t('Task'),
-    '#default_value' => $task_nid,
-    '#options' => $tasks,
+    '#title' => t('Budget tree'),
+    '#default_value' => $budget_item_nid,
+    '#options' => $budget_tree,
     '#process' => array('storm_dependent_select_process'),
-    '#attributes' => array('onchange' => "stormticket_task_tickets(this, 'edit-organization-nid', 'edit-project-nid', 'edit-ticket-nid', true, 'All')"),
+//     '#attributes' => array('onchange' => "stormticket_task_tickets(this, 'edit-organization-nid', 'edit-project-nid', 'edit-ticket-nid', true, 'All')"),
   );
 
-  $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormticket} AS sti ON sti.vid=n.vid
-  WHERE n.status=1 AND n.type='stormticket' AND sti.organization_nid=%d AND sti.project_nid=%d AND sti.task_nid=%d ORDER BY title ";
-  $s = stormticket_access_sql($s);
-  $s = db_rewrite_sql($s);
-  $r = db_query($s, $organization_nid, $project_nid, $task_nid);
-  $tickets = array();
-  while ($ticket = db_fetch_object($r)) {
-    $tickets[$ticket->nid] = $ticket->title;
-  }
-  $tickets = array(0 => t('All')) + $tickets;
-  $form['filter']['group1']['ticket_nid'] = array(
-    '#type' => 'select',
-    '#title' => t('Ticket'),
-    '#default_value' => $ticket_nid,
-    '#process' => array('storm_dependent_select_process'),
-    '#options' => $tickets,
-  );
+//   $tree = _stormtask_get_tree($project_nid);
+//   $tasks = _stormtask_plain_tree($tree);
+//   $tasks = array(0 => t('All')) + $tasks;
+//   $form['filter']['group1']['task_nid'] = array(
+//     '#type' => 'select',
+//     '#title' => t('Task'),
+//     '#default_value' => $task_nid,
+//     '#options' => $tasks,
+//     '#process' => array('storm_dependent_select_process'),
+//     '#attributes' => array('onchange' => "stormticket_task_tickets(this, 'edit-organization-nid', 'edit-project-nid', 'edit-ticket-nid', true, 'All')"),
+//   );
+// 
+//   $s = "SELECT n.nid, n.title FROM {node} AS n INNER JOIN {stormticket} AS sti ON sti.vid=n.vid
+//   WHERE n.status=1 AND n.type='stormticket' AND sti.organization_nid=%d AND sti.project_nid=%d AND sti.task_nid=%d ORDER BY title ";
+//   $s = stormticket_access_sql($s);
+//   $s = db_rewrite_sql($s);
+//   $r = db_query($s, $organization_nid, $project_nid, $task_nid);
+//   $tickets = array();
+//   while ($ticket = db_fetch_object($r)) {
+//     $tickets[$ticket->nid] = $ticket->title;
+//   }
+//   $tickets = array(0 => t('All')) + $tickets;
+//   $form['filter']['group1']['ticket_nid'] = array(
+//     '#type' => 'select',
+//     '#title' => t('Ticket'),
+//     '#default_value' => $ticket_nid,
+//     '#process' => array('storm_dependent_select_process'),
+//     '#options' => $tickets,
+//   );
 
   $form['filter']['group2'] = array(
     '#type' => 'markup',
@@ -287,18 +323,19 @@ function stormexpense_list_filter() {
   );
 
   $form['filter']['group2']['datefrom'] = array(
-    '#type' => 'date',
+    '#type' => 'date_popup',
     '#title' => t('Date from'),
+    '#date_format' =>  'Y-m-d',
     '#default_value' => $datefrom,
   );
 
-  $form['filter']['group2']['user'] = array(
-    '#type' => 'textfield',
-    '#title' => t('User'),
-    '#size' => 25,
-    '#default_value' => $expenseuser,
-    '#autocomplete_path' => 'user/autocomplete',
-  );
+//   $form['filter']['group2']['user'] = array(
+//     '#type' => 'textfield',
+//     '#title' => t('User'),
+//     '#size' => 25,
+//     '#default_value' => $expenseuser,
+//     '#autocomplete_path' => 'user/autocomplete',
+//   );
 
   $form['filter']['group3'] = array(
     '#type' => 'markup',
@@ -312,13 +349,13 @@ function stormexpense_list_filter() {
     '#default_value' => $title,
   );
 
-  $form['filter']['group3']['provider_title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Provider'),
-    '#size' => 40,
-    '#default_value' => $provider_title,
-    '#autocomplete_path' => 'storm/expenses/provider_autocomplete',
-  );
+//   $form['filter']['group3']['provider_title'] = array(
+//     '#type' => 'textfield',
+//     '#title' => t('Provider'),
+//     '#size' => 40,
+//     '#default_value' => $provider_title,
+//     '#autocomplete_path' => 'storm/expenses/provider_autocomplete',
+//   );
 
   $form['filter']['group4'] = array(
     '#type' => 'markup',
@@ -352,8 +389,9 @@ function stormexpense_list_filter() {
 function stormexpense_list_filter_filter($form, &$form_state) {
   $_SESSION['stormexpense_list_filter']['organization_nid'] = $form_state['values']['organization_nid'];
   $_SESSION['stormexpense_list_filter']['project_nid'] = $form_state['values']['project_nid'];
-  $_SESSION['stormexpense_list_filter']['task_nid'] = $form_state['values']['task_nid'];
-  $_SESSION['stormexpense_list_filter']['ticket_nid'] = $form_state['values']['ticket_nid'];
+  $_SESSION['stormexpense_list_filter']['budget_item'] = $form_state['values']['budget_item'];
+//   $_SESSION['stormexpense_list_filter']['task_nid'] = $form_state['values']['task_nid'];
+//   $_SESSION['stormexpense_list_filter']['ticket_nid'] = $form_state['values']['ticket_nid'];
   $_SESSION['stormexpense_list_filter']['datefrom'] = $form_state['values']['datefrom'];
   $_SESSION['stormexpense_list_filter']['itemsperpage'] = $form_state['values']['itemsperpage'];
   $_SESSION['stormexpense_list_filter']['user'] = $form_state['values']['user'];

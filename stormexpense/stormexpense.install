@@ -46,3 +46,9 @@ function stormexpense_update_1() {
   db_change_field($ret, 'stormexpense', 'vat', 'tax', array('type' => 'float'));
   return $ret;
 }
+
+function stormexpense_update_2() {
+  $ret = array();
+  db_add_field($ret, 'stormexpense', 'budget_item', array('type' => 'int', 'default' => 0));
+  return $ret;
+}

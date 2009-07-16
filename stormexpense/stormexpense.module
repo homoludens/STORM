@@ -249,23 +249,23 @@ function stormexpense_form(&$node) {
       $node->organization_nid = $p->organization_nid;
     }
 
-    if (array_key_exists('budget_tree', $_GET) && !$node->budget_item) {
-      $node->budget_item = $_GET['budget_tree'];
+    if (array_key_exists('budget_item', $_GET) && !$node->budget_item) {
+      $node->budget_item = $_GET['budget_item'];
     }
 
-    if (array_key_exists('task_nid', $_GET) && !$node->task_nid) {
-      $node->task_nid = $_GET['task_nid'];
-      $t = node_load($node->task_nid);
-      $node->organization_nid = $t->organization_nid;
-      $node->project_nid = $t->project_nid;
-    }
-    if (array_key_exists('ticket_nid', $_GET) && !$node->ticket_nid) {
-      $node->ticket_nid = $_GET['ticket_nid'];
-      $t = node_load($node->ticket_nid);
-      $node->organization_nid = $t->organization_nid;
-      $node->project_nid = $t->project_nid;
-      $node->task_nid = $t->task_nid;
-    }
+//     if (array_key_exists('task_nid', $_GET) && !$node->task_nid) {
+//       $node->task_nid = $_GET['task_nid'];
+//       $t = node_load($node->task_nid);
+//       $node->organization_nid = $t->organization_nid;
+//       $node->project_nid = $t->project_nid;
+//     }
+//     if (array_key_exists('ticket_nid', $_GET) && !$node->ticket_nid) {
+//       $node->ticket_nid = $_GET['ticket_nid'];
+//       $t = node_load($node->ticket_nid);
+//       $node->organization_nid = $t->organization_nid;
+//       $node->project_nid = $t->project_nid;
+//       $node->task_nid = $t->task_nid;
+//     }
 
     if ($_SESSION['stormexpense_list_filter']['organization_nid'] && !$node->organization_nid) {
       $node->organization_nid = $_SESSION['stormexpense_list_filter']['organization_nid'];
@@ -273,16 +273,20 @@ function stormexpense_form(&$node) {
     if ($_SESSION['stormexpense_list_filter']['project_nid'] && !$node->project_nid) {
       $node->project_nid = $_SESSION['stormexpense_list_filter']['project_nid'];
     }
-    if ($_SESSION['stormexpense_list_filter']['task_nid'] && !$node->task_nid) {
-      $node->task_nid = $_SESSION['stormexpense_list_filter']['task_nid'];
+    if ($_SESSION['stormexpense_list_filter']['budget_item'] && !$node->budget_item) {
+      $node->budget_item = $_SESSION['stormexpense_list_filter']['budget_item'];
     }
-    if ($_SESSION['stormexpense_list_filter']['ticket_nid'] && !$node->ticket_nid) {
-      $node->ticket_nid = $_SESSION['stormexpense_list_filter']['ticket_nid'];
-    }
+//     if ($_SESSION['stormexpense_list_filter']['task_nid'] && !$node->task_nid) {
+//       $node->task_nid = $_SESSION['stormexpense_list_filter']['task_nid'];
+//     }
+//     if ($_SESSION['stormexpense_list_filter']['ticket_nid'] && !$node->ticket_nid) {
+//       $node->ticket_nid = $_SESSION['stormexpense_list_filter']['ticket_nid'];
+//     }
     if (array_key_exists('organization_nid', $_GET)) $node->organization_nid = $_GET['organization_nid'];
     if (array_key_exists('project_nid', $_GET)) $node->project_nid = $_GET['project_nid'];
-    if (array_key_exists('task_nid', $_GET)) $node->task_nid = $_GET['task_nid'];
-    if (array_key_exists('ticket_nid', $_GET)) $node->ticket_nid = $_GET['ticket_nid'];
+    if (array_key_exists('budget_item', $_GET)) $node->budget_item = $_GET['budget_item'];
+//     if (array_key_exists('task_nid', $_GET)) $node->task_nid = $_GET['task_nid'];
+//     if (array_key_exists('ticket_nid', $_GET)) $node->ticket_nid = $_GET['ticket_nid'];
 
     $node->expensedate = time();
     $s_org = "SELECT n.nid, n.title FROM {stormorganization} so INNER JOIN {node} n 
@@ -355,7 +359,7 @@ function stormexpense_form(&$node) {
 
   $tree = _stormbudget_get_tree($node->project_nid);
   $parent_budgetitems = _stormbudget_plain_tree($tree);
-  $form['group2']['budget_tree'] = array(
+  $form['group2']['budget_item'] = array(
     '#type' => 'select',
     '#title' => t('Budget tree'),
     '#default_value' => $node->budget_item,
@@ -452,6 +456,20 @@ function stormexpense_form(&$node) {
   return $form;
 }
 
+// function stormexpense_form_alter(&$form, $form_state, $form_id) {
+//   if (module_exists('date_api') && module_exists('date_popup')) {
+//     if ('stormexpense_node_form' == $form_id) {
+// 	$node = $form['#node'];
+// 	$form['group3']['expensedate'] = array(
+// 	  '#type' => 'date',
+// 	  '#title' => t('Date begin'),
+// 	  '#date_format' =>  'Y-m-d',
+// 	  '#default_value' => date('Y-m-d',$node->expensedate),
+// 	);
+//     }
+//   }
+// }
+
 function stormexpense_insert($node) {
   _stormexpense_beforesave($node);
 
@@ -462,21 +480,21 @@ function stormexpense_insert($node) {
             task_nid, task_title, task_stepno,
             ticket_nid, ticket_title,
             provider_nid, provider_title,
-            expensedate, amount, tax, total) VALUES
+            expensedate, amount, tax, total, budget_item) VALUES
             (%d, %d,
             %d, '%s',
             %d, '%s',
             %d, '%s', '%s',
             %d, '%s',
             %d, '%s',
-            %d, %f, %f, %f)",
+            %d, %f, %f, %f, %d)",
             $node->vid, $node->nid,
             $node->organization_nid, $node->organization_title,
             $node->project_nid, $node->project_title,
             $node->task_nid, $node->task_title, $node->task_stepno,
             $node->ticket_nid, $node->ticket_title,
             $node->provider_nid, $node->provider_title,
-            $node->expensedate, $node->amount, $node->tax, $node->total);
+            $node->expensedate, $node->amount, $node->tax, $node->total, $node->budget_item);
 }
 
 function stormexpense_update($node) {
@@ -485,19 +503,14 @@ function stormexpense_update($node) {
   db_query("UPDATE {stormexpense} SET
             organization_nid=%d, organization_title='%s',
             project_nid=%d, project_title='%s',
-            task_nid=%d, task_title='%s', task_stepno='%s',
-            ticket_nid=%d, ticket_title='%s',
-            provider_nid=%d, provider_title='%s',
-            expensedate=%d, amount=%f, tax=%f, total=%f WHERE vid = %d",
+            expensedate=%d, amount=%f, tax=%f, total=%f, budget_item = %d WHERE vid = %d",
             $node->organization_nid, $node->organization_title,
             $node->project_nid, $node->project_title,
-            $node->task_nid, $node->task_title, $node->task_stepno,
-            $node->ticket_nid, $node->ticket_title,
-            $node->provider_nid, $node->provider_title,
-            $node->expensedate, $node->amount, $node->tax, $node->total, $node->vid);
+            $node->expensedate, $node->amount, $node->tax, $node->total, $node->budget_item, $node->vid);
 }
 
 function _stormexpense_beforesave(&$node) {
+
   $node->expensedate = _storm_date_to_gmtimestamp($node->expensedate);
 
   $node->total = $node->amount + $node->tax;
@@ -516,16 +529,22 @@ function _stormexpense_beforesave(&$node) {
   $p = db_fetch_object($r);
   $node->project_title = $p->title;
 
-  $s = "SELECT title, stepno FROM {node} AS n INNER JOIN {stormtask} AS t ON n.vid=t.vid WHERE n.type='stormtask' AND n.nid=%d";
-  $r = db_query($s, $node->task_nid);
-  $ta = db_fetch_object($r);
-  $node->task_title = $ta->title;
-  $node->task_stepno = $ta->stepno;
 
-  $s = "SELECT title FROM {node} AS n INNER JOIN {stormticket} AS t ON n.vid=t.vid WHERE n.type='stormticket' AND n.nid=%d";
-  $r = db_query($s, $node->ticket_nid);
-  $ti = db_fetch_object($r);
-  $node->ticket_title = $ti->title;
+  $s = "SELECT title FROM {node} AS n INNER JOIN {stormbudget} AS b ON n.vid=b.vid WHERE n.type='stormbudget' AND n.nid=%d";
+  $r = db_query($s, $node->budget_item);
+  $bi = db_fetch_object($r);
+  $node->budget_item_title = $bi->title;
+
+//   $s = "SELECT title, stepno FROM {node} AS n INNER JOIN {stormtask} AS t ON n.vid=t.vid WHERE n.type='stormtask' AND n.nid=%d";
+//   $r = db_query($s, $node->task_nid);
+//   $ta = db_fetch_object($r);
+//   $node->task_title = $ta->title;
+//   $node->task_stepno = $ta->stepno;
+// 
+//   $s = "SELECT title FROM {node} AS n INNER JOIN {stormticket} AS t ON n.vid=t.vid WHERE n.type='stormticket' AND n.nid=%d";
+//   $r = db_query($s, $node->ticket_nid);
+//   $ti = db_fetch_object($r);
+//   $node->ticket_title = $ti->title;
 }
 
 function stormexpense_nodeapi(&$node, $op, $teaser, $page) {

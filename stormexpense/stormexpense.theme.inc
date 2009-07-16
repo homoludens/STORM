@@ -96,27 +96,33 @@ function theme_stormexpense_view($node, $teaser = FALSE, $page = FALSE) {
     '#weight' => $w++,
   );
 
-  $node->content['stormexpense']['fields']['task'] = array(
-    '#prefix' => '<div class="task">',
-    '#suffix' => '</div>',
-    '#value' => theme('storm_view_item', t('Task'), l($node->task_title, 'node/'. $node->task_nid)),
-    '#weight' => $w++,
-  );
+//   $node->content['stormexpense']['fields']['task'] = array(
+//     '#prefix' => '<div class="task">',
+//     '#suffix' => '</div>',
+//     '#value' => theme('storm_view_item', t('Task'), l($node->task_title, 'node/'. $node->task_nid)),
+//     '#weight' => $w++,
+//   );
+// 
+//   $node->content['stormexpense']['fields']['ticket'] = array(
+//     '#prefix' => '<div class="ticket">',
+//     '#suffix' => '</div>',
+//     '#value' => theme('storm_view_item', t('Ticket'), l($node->ticket_title, 'node/'. $node->ticket_nid)),
+//     '#weight' => $w++,
+//   );
 
-  $node->content['stormexpense']['fields']['ticket'] = array(
-    '#prefix' => '<div class="ticket">',
-    '#suffix' => '</div>',
-    '#value' => theme('storm_view_item', t('Ticket'), l($node->ticket_title, 'node/'. $node->ticket_nid)),
-    '#weight' => $w++,
-  );
+//   $node->content['stormexpense']['fields']['provider'] = array(
+//     '#prefix' => '<div class="provider">',
+//     '#suffix' => '</div>',
+//     '#value' => theme('storm_view_item', t('Provider'), $node->provider_title),
+//     '#weight' => $w++,
+//   );
 
-  $node->content['stormexpense']['fields']['provider'] = array(
+  $node->content['stormexpense']['fields']['budget_item'] = array(
     '#prefix' => '<div class="provider">',
     '#suffix' => '</div>',
-    '#value' => theme('storm_view_item', t('Provider'), $node->provider_title),
+    '#value' => theme('storm_view_item', t('Budget item'), $node->budget_item),
     '#weight' => $w++,
   );
-
   $node->content['stormexpense']['fields']['expensedate'] = array(
     '#prefix' => '<div class="expensedate">',
     '#suffix' => '</div>',
