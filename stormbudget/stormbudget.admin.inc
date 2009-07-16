@@ -174,6 +174,15 @@ function stormbudget_budgetitems_form($form_id, $header, $budgetitems, $project)
     $v .= '&nbsp;'. storm_icon_delete_node($n, $params);
     $params['parent_nid'] = $budgetitem->nid;
     $v .= '&nbsp;'. storm_icon_add_node($n, $params);
+
+/*
+ * Creating '+' sign for adding exense for specific budget item
+ */
+    $n->type = 'stormexpense';
+    $params['budget_item'] = $params['parent_nid'];
+    $params['parent_nid'] = NULL;
+    $v .= '&nbsp;'. storm_icon_add_node($n, $params);
+
     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_operations_'. $budgetitem->nid] = array(
       '#value' => $v,
     );

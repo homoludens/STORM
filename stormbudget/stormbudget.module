@@ -466,15 +466,16 @@ function stormbudget_insert($node) {
     (vid, nid, stepno, budgetcategory, budgetstatus, budgetpriority,
     organization_nid, organization_title,
     project_nid, project_title, parent_nid, weight,
-    pricemode, price, currency, person_organization_nid, person_nid)
+    pricemode, price, currency)
     VALUES
     (%d, %d, '%s', '%s', '%s', '%s',
     %d, '%s',
-    %d, '%s', %d, %d, %d, %d, '%s', %f, '%s', %f, '%s', %d, %d)",
+    %d, '%s', %d, %d, 
+    '%s', %f, '%s')",
     $node->vid, $node->nid, $node->stepno, $node->budgetcategory, $node->budgetstatus, $node->budgetpriority,
-    $node->organization_nid, $node->organization_title, $node->project_nid, $node->project_title,
-    $node->parent_nid, $node->weight,
-    $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid);
+    $node->organization_nid, $node->organization_title, 
+    $node->project_nid, $node->project_title, $node->parent_nid, $node->weight,
+    $node->pricemode, $node->price, $node->currency);
 }
 
 function stormbudget_update($node) {
@@ -489,14 +490,14 @@ function stormbudget_update($node) {
       organization_nid=%d, organization_title='%s',
       project_nid=%d, project_title='%s',
       parent_nid=%d, weight=%d,
-      pricemode='%s', price=%f, currency='%s' , person_organization_nid = %d, person_nid=%d
+      pricemode='%s', price=%f, currency='%s'
       WHERE vid = %d",
       $node->stepno, $node->budgetcategory, $node->budgetstatus, $node->budgetpriority,
       $node->organization_nid, $node->organization_title,
       $node->project_nid, $node->project_title,
-      $node->parent_nid,
-      $node->weight, 
-      $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid, $node->vid);
+      $node->parent_nid, $node->weight, 
+      $node->pricemode, $node->price, $node->currency, 
+      $node->vid);
     if (($node->title != $node->title_old) || ($node->stepno != $node->stepno_old)) {
       module_invoke_all('stormbudget_change', $node->nid, $node->stepno, $node->title);
     }
