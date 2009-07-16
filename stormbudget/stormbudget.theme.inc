@@ -29,10 +29,14 @@ function theme_stormbudget_budgetitems($form) {
       drupal_render($form['budgetitems'][$key]['budgetitem_category_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_status_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_priority_'. $key]),
-      drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key]),
+//       drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key]),
+
+      array(
+        'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key])), 
+        'style' => 'text-align: right'),
 
 //       array(
-//         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key])) .' '. substr($durationunit, 0, 1), 
+//         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_duration_'. $key])) .' '. substr($durationunit, 0, 1), 
 //         'style' => 'text-align: right'),
 //       drupal_render($form['budgetitems'][$key]['budgetitem_parent-nid_'. $key]) . drupal_render($form['budgetitems'][$key]['budgetitem_nid_'. $key]),
 //       drupal_render($form['budgetitems'][$key]['budgetitem_weight_'. $key]),
@@ -49,7 +53,7 @@ function theme_stormbudget_budgetitems($form) {
   return $o;
 }
 
-function theme_stormbudget_list($header, $budgetitems) {
+function theme_stormbudget_list($header, $budgetitems, $totals) {
   $rows = array();
   foreach ($budgetitems as $budgetitem) {
     $n = new stdClass();
@@ -67,7 +71,8 @@ function theme_stormbudget_list($header, $budgetitems) {
       storm_icon('category_'. $budgetitem->budgetcategory, $budgetitem->budgetcategory),
       storm_icon('status_'. $budgetitem->budgetstatus, $budgetitem->budgetstatus),
       storm_icon('priority_'. $budgetitem->budgetpriority, $budgetitem->budgetpriority),
-      $budgetitem->price,
+//       $budgetitem->price,
+      sprintf('%.2f', $budgetitem->price), 
 //       l($node_person->fullname, 'node/'. $budgetitem->person_nid),
 //       l($budgetitem->person_organization_nid, 'node/'. $budgetitem->person_organization_nid),
       array(
@@ -77,6 +82,23 @@ function theme_stormbudget_list($header, $budgetitems) {
     );
   }
   $o = theme('table', $header, $rows);
+
+  $header = array(
+    array(
+      'data' => t('Total price'),
+      'style' => 'text-align: center;',
+    ),
+  );
+
+  $rows = array();
+  $rows[] = array(
+    array(
+      'data' => sprintf('%.2f', $totals->t_price),
+      'style' => 'text-align: right;',
+    ),
+  );
+  $o .= theme('table', $header, $rows);
+
   return $o;
 }
 

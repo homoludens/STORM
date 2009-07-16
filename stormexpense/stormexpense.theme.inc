@@ -33,15 +33,15 @@ function theme_stormexpense_list($header, $expenses, $totals) {
   $header = array(
     array(
       'data' => t('Amount'),
-      'style' => 'text-align: center;',
+      'style' => 'text-align: right;',
     ),
     array(
       'data' => t('Tax'),
-      'style' => 'text-align: center;',
+      'style' => 'text-align: right;',
     ),
     array(
       'data' => t('Total'),
-      'style' => 'text-align: center;',
+      'style' => 'text-align: right;',
     ),
   );
 

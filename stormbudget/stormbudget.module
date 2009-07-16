@@ -178,8 +178,8 @@ function stormbudget_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['storm/budget'] = array(
-    'title' => t('Budget items'),
-    'description' => t('Storm budget items'),
+    'title' => t('Budget'),
+    'description' => t('Storm Budget'),
     'page callback' => 'stormbudget_list',
     'access arguments' => array('Storm budget: access'),
     'type' => MENU_NORMAL_ITEM,
@@ -343,7 +343,7 @@ function stormbudget_form(&$node) {
   $parent_budgetitems = _stormbudget_plain_tree($tree);
   $form['group1']['parent_nid'] = array(
     '#type' => 'select',
-    '#title' => t('Parent budgetitem'),
+    '#title' => t('Parent budget item'),
     '#default_value' => $node->parent_nid,
     '#options' => array(0 => '-') + $parent_budgetitems,
     '#process' => array('storm_dependent_select_process'),
@@ -383,26 +383,26 @@ function stormbudget_form(&$node) {
   );
 
   $budgetitemcategory_list = stormattribute_attributes_bydomain('Budget item category');
-  $form['group3']['budgetitemcategory'] = array(
+  $form['group3']['budgetcategory'] = array(
     '#type' => 'select',
     '#title' => t('Category'),
-    '#default_value' => $node->budgetitemcategory,
+    '#default_value' => $node->budgetcategory,
     '#options' => $budgetitemcategory_list['values'],
   );
 
   $budgetitemstatus_list = stormattribute_attributes_bydomain('Budget item status');
-  $form['group3']['budgetitemstatus'] = array(
+  $form['group3']['budgetstatus'] = array(
     '#type' => 'select',
     '#title' => t('Status'),
-    '#default_value' => $node->budgetitemstatus,
+    '#default_value' => $node->budgetstatus,
     '#options' => $budgetitemstatus_list['values'],
   );
 
   $budgetitempriority_list = stormattribute_attributes_bydomain('Budget item priority');
-  $form['group3']['budgetitempriority'] = array(
+  $form['group3']['budgetpriority'] = array(
     '#type' => 'select',
     '#title' => t('Priority'),
-    '#default_value' => $node->budgetitempriority,
+    '#default_value' => $node->budgetpriority,
     '#options' => $budgetitempriority_list['values'],
   );
 
@@ -471,7 +471,7 @@ function stormbudget_insert($node) {
     (%d, %d, '%s', '%s', '%s', '%s',
     %d, '%s',
     %d, '%s', %d, %d, %d, %d, '%s', %f, '%s', %f, '%s', %d, %d)",
-    $node->vid, $node->nid, $node->stepno, $node->budgetitemcategory, $node->budgetitemstatus, $node->budgetitempriority,
+    $node->vid, $node->nid, $node->stepno, $node->budgetcategory, $node->budgetstatus, $node->budgetpriority,
     $node->organization_nid, $node->organization_title, $node->project_nid, $node->project_title,
     $node->parent_nid, $node->weight,
     $node->pricemode, $node->price, $node->currency, $node->person_organization_nid, $node->person_nid);
@@ -491,7 +491,7 @@ function stormbudget_update($node) {
       parent_nid=%d, weight=%d,
       pricemode='%s', price=%f, currency='%s' , person_organization_nid = %d, person_nid=%d
       WHERE vid = %d",
-      $node->stepno, $node->budgetitemcategory, $node->budgetitemstatus, $node->budgetitempriority,
+      $node->stepno, $node->budgetcategory, $node->budgetstatus, $node->budgetpriority,
       $node->organization_nid, $node->organization_title,
       $node->project_nid, $node->project_title,
       $node->parent_nid,
@@ -526,13 +526,13 @@ function stormbudget_nodeapi(&$node, $op, $teaser, $page) {
         $node->isactive = 1;
 
         $budgetitemcategory_list = stormattribute_attributes_bydomain('Budget item category');
-        $node->budgetitemcategory = $budgetitemcategory_list['default'];
+        $node->budgetcategory = $budgetitemcategory_list['default'];
 
         $budgetitemstatus_list = stormattribute_attributes_bydomain('Budget item status');
-        $node->budgetitemstatus = $budgetitemstatus_list['default'];
+        $node->budgetstatus = $budgetitemstatus_list['default'];
 
         $budgetitempriority_list = stormattribute_attributes_bydomain('Budget item priority');
-        $node->budgetitempriority = $budgetitempriority_list['default'];
+        $node->budgetpriority = $budgetitempriority_list['default'];
 
         $pricemode_list = stormattribute_attributes_bydomain('Price mode');
         $node->pricemode = $pricemode_list['default'];

@@ -87,7 +87,7 @@ function stormbudget_views_data() {
     ),
   );
 
-  $data['stormbudget']['budgetitemstatus'] = array(
+  $data['stormbudget']['budgetstatus'] = array(
     'title' => t('Budget item Status'),
     'help' => 'Storm Budget item Status',
     'field' => array(
@@ -102,7 +102,7 @@ function stormbudget_views_data() {
     ),
   );
 
-  $data['stormbudget']['budgetitemcategory'] = array(
+  $data['stormbudget']['budgetcategory'] = array(
     'title' => t('Budget item Category'),
     'help' => 'Storm Budget item Category',
     'field' => array(
@@ -117,7 +117,7 @@ function stormbudget_views_data() {
     ),
   );
 
-  $data['stormbudget']['budgetitempriority'] = array(
+  $data['stormbudget']['budgetpriority'] = array(
     'title' => t('Budget item Priority'),
     'help' => 'Storm Budget item Priority',
     'field' => array(
