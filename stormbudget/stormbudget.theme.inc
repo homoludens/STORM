@@ -18,19 +18,22 @@ function theme_stormbudget_budgetitems($form) {
   unset($form['header']);
 
   foreach (element_children($form['budgetitems']) as $key) {
+
     $form['budgetitems'][$key]['budgetitem_parent-nid_'. $key]['#attributes']['class'] = 'budgetitem-parent-nid';
     $form['budgetitems'][$key]['budgetitem_nid_'. $key]['#attributes']['class'] = 'budgetitem-nid';
     $form['budgetitems'][$key]['budgetitem_weight_'. $key]['#attributes']['class'] = 'budgetitem-weight';
-    $durationunit = $form['budgetitems'][$key]['budgetitem_durationunit_'. $key]['#value'];
+//     $durationunit = $form['budgetitems'][$key]['budgetitem_durationunit_'. $key]['#value'];
 
     $data = array(
       theme('indentation', $form['budgetitems'][$key]['budgetitem_depth_'. $key]['#value']) . drupal_render($form['budgetitems'][$key]['budgetitem_description_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_category_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_status_'. $key]),
       drupal_render($form['budgetitems'][$key]['budgetitem_priority_'. $key]),
-// /*      array(
-//         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_duration_'. $key])) .' '. substr($durationunit, 0, 1), 
-//         'style' => 'text-align: right'),*/
+      drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key]),
+
+//       array(
+//         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key])) .' '. substr($durationunit, 0, 1), 
+//         'style' => 'text-align: right'),
 //       drupal_render($form['budgetitems'][$key]['budgetitem_parent-nid_'. $key]) . drupal_render($form['budgetitems'][$key]['budgetitem_nid_'. $key]),
 //       drupal_render($form['budgetitems'][$key]['budgetitem_weight_'. $key]),
       array(
@@ -64,6 +67,7 @@ function theme_stormbudget_list($header, $budgetitems) {
       storm_icon('category_'. $budgetitem->budgetcategory, $budgetitem->budgetcategory),
       storm_icon('status_'. $budgetitem->budgetstatus, $budgetitem->budgetstatus),
       storm_icon('priority_'. $budgetitem->budgetpriority, $budgetitem->budgetpriority),
+      $budgetitem->price,
 //       l($node_person->fullname, 'node/'. $budgetitem->person_nid),
 //       l($budgetitem->person_organization_nid, 'node/'. $budgetitem->person_organization_nid),
       array(

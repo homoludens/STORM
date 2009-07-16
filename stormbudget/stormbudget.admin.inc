@@ -35,6 +35,9 @@ function stormbudget_budgetitems($project) {
     array(
       'data' => t('Priority'),
     ),
+    array(
+      'data' => t('Price'),
+    ),
 //     array(
 //       'data' => t('Parent'),
 //     ),
@@ -126,6 +129,9 @@ function stormbudget_budgetitems_form($form_id, $header, $budgetitems, $project)
       '#value' => storm_icon('priority_'. $budgetitem->budgetpriority, $budgetitem->budgetpriority),
     );
 
+    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_price_'. $budgetitem->nid] = array(
+      '#value' => $budgetitem->price,
+    );
 
 // /*    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_parent-nid_'. $budgetitem->nid] = array(
 //       '#type' => 'hidden',
@@ -181,21 +187,21 @@ function stormbudget_budgetitems_submit($form, &$form_state) {
 
 function stormbudget_budgetitems_filter() {
   $category_list = stormattribute_attributes_bydomain('Budget item category search');
-  $budgetitemcategory = $_SESSION['stormbudget_budgetitems_filter']['budgetitemcategory'];
+  $budgetitemcategory = $_SESSION['stormbudget_budgetitems_filter']['budgetcategory'];
   if (!$budgetitemcategory) {
     $budgetitemcategory = $category_list['default'];
     $_SESSION['stormbudget_budgetitems_filter']['budgetitemcategory'] = $budgetitemcategory;
   }
 
   $status_list = stormattribute_attributes_bydomain('Budget item status search');
-  $budgetitemstatus = $_SESSION['stormbudget_budgetitems_filter']['budgetitemstatus'];
+  $budgetitemstatus = $_SESSION['stormbudget_budgetitems_filter']['budgetstatus'];
   if (!$budgetitemstatus) {
     $budgetitemstatus = $status_list['default'];
     $_SESSION['stormtbudget_budgetitems_filter']['budgetitemstatus'] = $budgetitemstatus;
   }
 
   $priority_list = stormattribute_attributes_bydomain('Budget item priority search');
-  $budgetitempriority = $_SESSION['stormbudget_budgetitems_filter']['budgetitempriority'];
+  $budgetitempriority = $_SESSION['stormbudget_budgetitems_filter']['budgetpriority'];
   if (!$budgetitempriority) {
     $budgetitempriority = $priority_list['default'];
     $_SESSION['stormbudget_budgetitems_filter']['budgetitempriority'] = $budgetitempriority;
@@ -324,10 +330,10 @@ function stormbudget_list() {
       'data' => t('Priority'),
       'field' => 'sta.budgetpriority',
     ),
-//     array(
-//       'data' => t('Price'),
-//       'field' => 'sta.price',
-//     ),    
+    array(
+      'data' => t('Price'),
+      'field' => 'sta.price',
+    ),    
 
     array(
       'data' => storm_icon_add_node($i, $_GET),
