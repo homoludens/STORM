@@ -34,6 +34,9 @@ function theme_stormbudget_budgetitems($form) {
       array(
         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_price_'. $key])), 
         'style' => 'text-align: right'),
+      array(
+        'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_spent_'. $key])), 
+        'style' => 'text-align: right'),
 
 //       array(
 //         'data' => sprintf('%.2f', drupal_render($form['budgetitems'][$key]['budgetitem_duration_'. $key])) .' '. substr($durationunit, 0, 1), 
@@ -139,6 +142,14 @@ function theme_stormbudget_view($node, $teaser = FALSE, $page = FALSE) {
     '#weight' => $w++,
   );
 
+  $node->content['stormbudgetitem']['fields']['price'] = array(
+    '#prefix' => '<div class="stepno">',
+    '#suffix' => '</div>',
+    '#value' => theme('storm_view_item', t('Budget'), $node->price),
+    '#weight' => $w++,
+  );
+
+
   $node->content['stormbudgetitem']['fields']['body'] = array(
     '#prefix' => '<div class="body">',
     '#suffix' => '</div>',
@@ -156,6 +167,16 @@ function theme_stormbudget_view($node, $teaser = FALSE, $page = FALSE) {
 
   $w = 0;
   $i = new stdClass();
+
+  if (module_exists('stormexpense') && user_access('Storm expense: access')) {
+    $i->type = 'stormexpense';
+    $node->content['stormbudgetitem']['links']['expense']  = array(
+      '#prefix' => '<dt id="stormnotes" class="stormcomponent">',
+      '#suffix' => '</dt>',
+      '#value' => l(t('Expenses'), 'storm/expenses', array('query' => array('organization_nid' => $node->organization_nid,'project_nid' => $node->project_nid, 'budget_item' => $node->nid))).storm_icon_add_node($i, $_GET),
+      '#weight' => $w++,
+    );
+  }
 
   if (module_exists('stormnote') && user_access('Storm note: access')) {
     $i->type = 'stormnote';

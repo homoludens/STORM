@@ -225,7 +225,6 @@ function stormticket_stormtask_change($task_nid, $task_stepno, $task_title) {
 
 function stormticket_form(&$node) {
   $status_list = stormattribute_attributes_bydomain('Ticket status');
-  print_r($status_list);
   $breadcrumb = array();
   $breadcrumb[] = l(t('Storm'), 'storm');
   $breadcrumb[] = l(t('Tickets'), 'storm/tickets');

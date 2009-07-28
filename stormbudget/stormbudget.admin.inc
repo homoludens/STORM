@@ -36,11 +36,13 @@ function stormbudget_budgetitems($project) {
       'data' => t('Priority'),
     ),
     array(
-      'data' => t('Price'),
+      'data' => t('Budget'),
+      'style' => 'text-align:right',
     ),
-//     array(
-//       'data' => t('Parent'),
-//     ),
+    array(
+      'data' => t('Spent'),
+      'style' => 'text-align:right',
+    ),
 //     array(
 //       'data' => t('Weight'),
 //     ),
@@ -89,9 +91,15 @@ function stormbudget_budgetitems($project) {
   foreach ($budgetitemstree as $budgetitem) {
       $total_price = $total_price + $budgetitem->price;
   }
+  $total_spent = variable_get('stormbudget_total_spent' , 0 );
+
   $header = array(
     array(
-      'data' => t('Total price'),
+      'data' => t('Total budget'),
+      'style' => 'text-align: right;',
+    ),
+    array(
+      'data' => t('Total spent'),
       'style' => 'text-align: right;',
     ),
   );
@@ -99,6 +107,10 @@ function stormbudget_budgetitems($project) {
   $rows[] = array(
     array(
       'data' => sprintf('%.2f', $total_price),
+      'style' => 'text-align: right;',
+    ),
+    array(
+      'data' => sprintf('%.2f', $total_spent),
       'style' => 'text-align: right;',
     ),
   );
@@ -130,6 +142,14 @@ function stormbudget_budgetitems_form($form_id, $header, $budgetitems, $project)
     $n->uid = $budgetitem->uid;
     $n->type = 'stormbudget';
 
+//Calculating spent amounts for every budget item
+    $s_totals = "SELECT SUM(amount) AS t_amount FROM {node} AS n INNER JOIN {stormexpense} AS sex ON n.vid=sex.vid WHERE n.status=1 AND n.type='stormexpense' AND sex.budget_item=%d";
+    $s_totals = stormexpense_access_sql($s_totals, $where);
+    $s_totals = db_rewrite_sql($s_totals);
+    $r = db_query($s_totals, $budgetitem->nid);
+    $spent = db_fetch_object($r);
+    $total_spent = $total_spent + $spent->t_amount;
+
     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_depth_'. $budgetitem->nid] = array(
       '#value' => $budgetitem->depth,
     );
@@ -152,6 +172,9 @@ function stormbudget_budgetitems_form($form_id, $header, $budgetitems, $project)
 
     $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_price_'. $budgetitem->nid] = array(
       '#value' => $budgetitem->price,
+    );
+    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_spent_'. $budgetitem->nid] = array(
+      '#value' => $spent->t_amount,
     );
 
 // /*    $form['budgetitems']['budgetitems'][$budgetitem->nid]['budgetitem_parent-nid_'. $budgetitem->nid] = array(
@@ -193,7 +216,7 @@ function stormbudget_budgetitems_form($form_id, $header, $budgetitems, $project)
     '#submit' => array('stormbudget_budgetitems_submit'),
     '#value' => t('Save'),
   );
-
+  variable_set('stormbudget_total_spent' ,$total_spent );
   return $form;
 }
 
@@ -381,11 +404,11 @@ function stormbudget_list() {
 
 
   $s  = "SELECT n.*, sta.* FROM {node} AS n INNER JOIN {stormbudget} AS sta ON n.vid=sta.vid WHERE n.status=1 AND n.type='stormbudget' ";
-  if ($_SESSION['stormbudgetitem_list_filter']['organization_nid']) {
+  if ($_SESSION['stormbudget_list_filter']['organization_nid']) {
     $where[] = 'sta.organization_nid=%d';
     $args[] = $_SESSION['stormbudget_list_filter']['organization_nid'];
   }
-  if ($_SESSION['stormbudgetitem_list_filter']['project_nid']) {
+  if ($_SESSION['stormbudget_list_filter']['project_nid']) {
     $where[] = 'sta.project_nid=%d';
     $args[] = $_SESSION['stormbudget_list_filter']['project_nid'];
   }

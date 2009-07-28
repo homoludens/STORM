@@ -20,7 +20,9 @@ function stormbudget_project_budgetitems(_project_select, _budgetitem_select_id,
 
 function stormbudget_organization_project_budgetitems(_organization_select, _project_select_id, _budget_select_id, _with_all_option, _all_text) {
   stormproject_organization_projects(_organization_select, _project_select_id, _with_all_option, _all_text);
+  var budget_item_select = $("#" + _budget_select_id).get(0);
+  storm_empty_select(budget_item_select);
   var project_select = $("#" + _project_select_id).get(0);
-  stormbudget_project_budgetitems(project_select, _budgetitem_select_id, _with_all_option, _all_text);
+  stormbudget_project_budgetitems(project_select, _budget_select_id, _with_all_option, _all_text);
 };
 
